@@ -1,4 +1,8 @@
 import csv
+from db_helper import get_client
+
+dbClient = get_client()
+print(dbClient)
 
 # Loading nodes...
 with open('../data/nodes.tsv') as tsvin:
