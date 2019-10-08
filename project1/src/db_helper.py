@@ -12,3 +12,9 @@ def test_connection(client):
         return info
     except ServerSelectionTimeoutError:
         return "Server Error"
+
+def insert_data(data, col):
+    try:
+        col.insert_one(data)
+    except:
+        print('Insert Error')
