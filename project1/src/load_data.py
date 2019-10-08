@@ -1,11 +1,15 @@
+"""
+This file parses the 2 tsv files in the data folder and inserts
+the data into the database
+"""
 import csv
 from db_helper import get_client, insert_data, drop_db, insert_progress_printer
 
 # Actual
-# DATABASE = 'csci79525_proj1'
+DATABASE = 'csci79525_proj1'
 
 # Test
-DATABASE = 'test'
+# DATABASE = 'test'
 
 
 db_client = get_client()
@@ -30,9 +34,9 @@ with open('../data/nodes.tsv') as tsvin:
             if data_type == "Anatomy":
                 insert_data(data, db.anatomy)
             if data_type == "Gene":
-                insert_data(data, db.gene)
+                insert_data(data, db.genes)
             if data_type == "Disease":
-                insert_data(data, db.disease)
+                insert_data(data, db.diseases)
 
         count += 1
         insert_progress_printer(node_file_total_lines, count, 'Node Insert', 300, True)
@@ -56,7 +60,7 @@ with open('../data/edges.tsv') as tsvin:
             insert_data(data, db.edges)
 
         count += 1
-        insert_progress_printer(edges_file_total_lines, count, 'Edges Insert', 15000, False)
+        insert_progress_printer(edges_file_total_lines, count, 'Edges Insert', 1, False)
     insert_progress_printer(node_file_total_lines, count, 'Node Insert', 1, False)
 
 tsvin.close()

@@ -1,3 +1,7 @@
+"""
+Utility helper functions to insert into db.
+TODO: Allow interfacing with different types of DB.
+"""
 import os
 from pymongo import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError
@@ -20,6 +24,13 @@ def insert_data(data, col):
         col.insert_one(data)
     except:
         print('Insert Error')
+
+
+def query_data(query, col, count=0):
+    try:
+        return col.find(query).limit(count)
+    except:
+        return None
 
 
 def drop_db(db_client, db):
