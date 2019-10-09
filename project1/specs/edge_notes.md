@@ -1,5 +1,5 @@
 # Notes on `edge.tsv` metaedge types
-###GiG = Gene Interacts Gene
+### GiG = Gene Interacts Gene
 ```
 ['Gene::801', 'GiG', 'Gene::7428']
 ['Gene::5987', 'GiG', 'Gene::9412']
@@ -7,7 +7,7 @@
 ```
 ---
 
-###CrC = Compound Resembles Compound
+### CrC = Compound Resembles Compound
 ```
 ['Compound::DB01069', 'CrC', 'Compound::DB00777']
 ['Compound::DB01103', 'CrC', 'Compound::DB00613']
@@ -15,7 +15,7 @@
 ```
 ---
 
-###DdG = Disease Downregulates Genes
+### DdG = Disease Downregulates Genes
 ```
 ['Disease::DOID:986', 'DdG', 'Gene::26059']
 ['Disease::DOID:9206', 'DdG', 'Gene::10651']
@@ -23,7 +23,7 @@
 ```
 ---
 
-###DlA = Disease Localizes Anatomy
+### DlA = Disease Localizes Anatomy
 ```
 ['Disease::DOID:14268', 'DlA', 'Anatomy::UBERON:0002110']
 ['Disease::DOID:14221', 'DlA', 'Anatomy::UBERON:0001980']
@@ -31,7 +31,7 @@
 ```
 ---
 
-###CtD = Compound Treats Disease
+### CtD = Compound Treats Disease
 ```
 ['Compound::DB00997', 'CtD', 'Disease::DOID:363']
 ['Compound::DB00206', 'CtD', 'Disease::DOID:10763']
@@ -39,7 +39,7 @@
 ```
 ---
 
-###CbG = Compound Binds Genes
+### CbG = Compound Binds Genes
 ```
 ['Compound::DB00514', 'CbG', 'Gene::1136']
 ['Compound::DB00686', 'CbG', 'Gene::2246']
@@ -47,7 +47,7 @@
 ```
 ---
 
-###CuG = Compound Upregulates Genes
+### CuG = Compound Upregulates Genes
 ```
 ['Compound::DB01179', 'CuG', 'Gene::6722']
 ['Compound::DB04573', 'CuG', 'Gene::55958']
@@ -55,7 +55,7 @@
 ```
 ---
 
-###DrD = Disease Resembles Disease
+### DrD = Disease Resembles Disease
 ```
 ['Disease::DOID:2994', 'DrD', 'Disease::DOID:11934']
 ['Disease::DOID:219', 'DrD', 'Disease::DOID:3571']
@@ -63,7 +63,7 @@
 ```
 ---
 
-###DaG = Disease Associates Genes
+### DaG = Disease Associates Genes
 ```
 ['Disease::DOID:263', 'DaG', 'Gene::3439']
 ['Disease::DOID:1909', 'DaG', 'Gene::1462']
@@ -71,7 +71,7 @@
 ```
 ---
 
-###CpD = Compound Palliates Diseases
+### CpD = Compound Palliates Diseases
 ```
 ['Compound::DB01175', 'CpD', 'Disease::DOID:3312']
 ['Compound::DB00321', 'CpD', 'Disease::DOID:7148']
@@ -79,7 +79,7 @@
 ```
 ---
 
-###AdG = Anatomy Downregulates Genes
+### AdG = Anatomy Downregulates Genes
 ```
 ['Anatomy::UBERON:0002082', 'AdG', 'Gene::1106']
 ['Anatomy::UBERON:0002185', 'AdG', 'Gene::2891']
@@ -87,7 +87,7 @@
 ```
 ---
 
-###AuG = Anatomy Upregulates Genes
+### AuG = Anatomy Upregulates Genes
 ```
 ['Anatomy::UBERON:0000178', 'AuG', 'Gene::9489']
 ['Anatomy::UBERON:0002369', 'AuG', 'Gene::728577']
@@ -95,7 +95,7 @@
 ```
 ---
 
-###GcG = Gene Covaries Gene
+### GcG = Gene Covaries Gene
 ```
 ['Gene::55272', 'GcG', 'Gene::504189']
 ['Gene::8772', 'GcG', 'Gene::54964']
@@ -103,7 +103,7 @@
 ```
 ---
 
-###Gr>G = Gene Regulates Gene
+### Gr>G = Gene Regulates Gene
 ```
 ['Gene::56647', 'Gr>G', 'Gene::6596']
 ['Gene::8607', 'Gr>G', 'Gene::11065']
@@ -111,7 +111,7 @@
 ```
 ---
 
-###CdG = Compound Downregulates Gene
+### CdG = Compound Downregulates Gene
 ```
 ['Compound::DB00970', 'CdG', 'Gene::64121']
 ['Compound::DB01034', 'CdG', 'Gene::10362']
@@ -119,7 +119,7 @@
 ```
 ---
 
-###DuG = Disease Upregulates Gene
+### DuG = Disease Upregulates Gene
 ```
 ['Disease::DOID:1324', 'DuG', 'Gene::682']
 ['Disease::DOID:12365', 'DuG', 'Gene::3717']
@@ -127,7 +127,7 @@
 ```
 ---
 
-###AeG = Anatomy Expresses Gene
+### AeG = Anatomy Expresses Gene
 ```
 ['Anatomy::UBERON:0000992', 'AeG', 'Gene::9816']
 ['Anatomy::UBERON:0002450', 'AeG', 'Gene::55093']
