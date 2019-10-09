@@ -31,6 +31,8 @@ with open('../data/nodes.tsv') as tsvin:
                 "value": row[1],
                 "type": data_type
             }
+            if data_type == "Compound":
+                insert_data(data, db.compounds)
             if data_type == "Anatomy":
                 insert_data(data, db.anatomy)
             if data_type == "Gene":
