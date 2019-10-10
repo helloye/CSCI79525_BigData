@@ -26,7 +26,14 @@ def insert_data(data, col):
         print('Insert Error')
 
 
-def query_data(query, col, count=0):
+def count_documents(query, col):
+    try:
+        return col.count_documents(query)
+    except:
+        return None
+
+
+def query_data_find(query, col, count=0):
     try:
         return col.find(query).limit(count)
     except:

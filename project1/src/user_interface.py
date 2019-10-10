@@ -1,8 +1,8 @@
 """
 This file will serve as the main user interface with the db
 """
-import os
-from db_helper import get_client, query_data
+import os, re
+from db_helper import get_client, query_data_find, count_documents
 
 COL_NAME = ["db.compounds", "db.diseases", "db.anatomy", "db.genes"]
 
@@ -23,10 +23,30 @@ def print_menu():
     print("5) Quit")
 
 
-# Query all associated data with the particular ID
-def generate_query(col_type):
-    return ""
+def query_compound_nodes():
+    search_string = input("Enter Compound ID:")
+    regx = re.compile(search_string, re.IGNORECASE)
+    query = {'$or': [
+        {"identifier": {'$regex': regx}},
+        {"value": {'$regex': regx}}
+    ]}
+    count = count_documents(query, db.compounds)
+    res = list(query_data_find(query, db.compounds))
+    if count > 1:
+        index = 1
+        for doc in res:
+            print(str(index) + ") " + doc['identifier'] + " - " + doc['value'])
+            index += 1
 
+        desired_index = input("\nMultiple results, select desired compound:")
+        compound = res[int(desired_index) - 1]
+    elif count == 1:
+        compound = res[0]
+
+    print("You have selected")
+    print(compound)
+
+    # TODO: Query the edge collection and display all associated edges with selected compound.
 
 user_input = "0"
 while user_input is not "5":
@@ -34,30 +54,9 @@ while user_input is not "5":
     user_input = input("\nInput(1-5):")
     if user_input is not "5":
         os.system('cls' if os.name=='nt' else 'clear')
-        print("Querying: " + COL_NAME[int(user_input) - 1])
-        query = generate_query(user_input)
-        test = input("Press enter to continue...")
-    # TODO: Query DB with example from below
+        if user_input is "1":
+            query_compound_nodes()
+
+        input("\n\nPress enter to continue...")
 
 os.system('cls' if os.name=='nt' else 'clear')
-
-
-# os.system('cls' if os.name=='nt' else 'clear')
-# user_input = input("Identifier:")
-# while user_input != "5":
-#
-#     field_to_query = input("Field to query:")
-#     collection_to_query = input("Collection to query:")
-#
-#     res = query_data({field_to_query: {'$regex': user_input}}, db[collection_to_query], 10)
-#
-#     print("\n Results: \n")
-#     for doc in res:
-#         print(doc)
-#
-#     input("\nPress enter to continue...")
-#
-#     os.system('cls' if os.name=='nt' else 'clear')
-#     user_input = input("Identifier:")
-#
-# os.system('cls' if os.name=='nt' else 'clear')
