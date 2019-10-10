@@ -12,8 +12,12 @@ db_client = get_client()
 db = db_client[DATABASE]
 
 
-def print_menu():
+def clear_screen():
     os.system('cls' if os.name=='nt' else 'clear')
+
+
+def print_menu():
+    clear_screen()
     print("==== Main Menu ====")
     print("Select collection to query")
     print("1) Compound")
@@ -21,6 +25,11 @@ def print_menu():
     print("3) Anatomy")
     print("4) Genes")
     print("5) Quit")
+
+
+def query_edges(s_id):
+    query_string = { "source_id": s_id}
+    return list(query_data_find(query_string, db.edges))
 
 
 def query_compound_nodes():
@@ -43,10 +52,18 @@ def query_compound_nodes():
     elif count == 1:
         compound = res[0]
 
-    print("You have selected")
+    print("\nYou have selected:")
     print(compound)
+    input("\nPress enter to query associated data with this compound...")
+    clear_screen()
+    print("Querying...")
+    edge_res = query_edges(compound['identifier'])
 
-    # TODO: Query the edge collection and display all associated edges with selected compound.
+    clear_screen()
+    for edge in edge_res:
+        print(edge)
+        # TODO: Group them into edge_types and pretty print. See ui_mock markdown sheet.
+
 
 user_input = "0"
 while user_input is not "5":
@@ -59,4 +76,4 @@ while user_input is not "5":
 
         input("\n\nPress enter to continue...")
 
-os.system('cls' if os.name=='nt' else 'clear')
+clear_screen()

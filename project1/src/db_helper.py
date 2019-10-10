@@ -35,7 +35,7 @@ def count_documents(query, col):
 
 def query_data_find(query, col, count=0):
     try:
-        return col.find(query).limit(count)
+        return col.find(query, {'_id': False}).limit(count)
     except:
         return None
 
