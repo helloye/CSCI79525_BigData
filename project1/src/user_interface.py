@@ -4,53 +4,39 @@ This file will serve as the main user interface with the db
 import os
 from db_helper import get_client, query_data
 
+COL_NAME = ["db.compounds", "db.diseases", "db.anatomy", "db.genes"]
+
 DATABASE = 'csci79525_proj1'
 
 db_client = get_client()
 db = db_client[DATABASE]
 
 
-def print_menu(user_input):
-    if user_input == "0":
-        os.system('cls' if os.name=='nt' else 'clear')
-        print("==== Main Menu ====")
-        print("Select collection to query")
-        print("1) Compound")
-        print("2) Diseases")
-        print("3) Genes")
-        print("4) Anatomy")
-        print("5) Edges")
-        print("6) Quit")
-    elif user_input == "1":
-        os.system('cls' if os.name=='nt' else 'clear')
-        print("==== Compound ====")
-        print("Query by:")
-    elif user_input == "2":
-        os.system('cls' if os.name=='nt' else 'clear')
-        print("==== Diseases ====")
-    elif user_input == "3":
-        os.system('cls' if os.name=='nt' else 'clear')
-        print("==== Genes ====")
-    elif user_input == "4":
-        os.system('cls' if os.name=='nt' else 'clear')
-        print("==== Anatomy ====")
+def print_menu():
+    os.system('cls' if os.name=='nt' else 'clear')
+    print("==== Main Menu ====")
+    print("Select collection to query")
+    print("1) Compound")
+    print("2) Diseases")
+    print("3) Anatomy")
+    print("4) Genes")
+    print("5) Quit")
 
 
+# Query all associated data with the particular ID
 def generate_query(col_type):
-    if col_type == "6":
-        query_string = input("edge_type query:")
-        return {"edge_type": query_string}
-    else:
-        query_string = input("value query:")
-        return {"value": query_string}
+    return ""
 
 
 user_input = "0"
-while user_input != "6":
-    print_menu(user_input)
-    user_input = input("\nInput(1-6):")
-    print_menu(user_input)
-    query = generate_query(user_input)
+while user_input is not "5":
+    print_menu()
+    user_input = input("\nInput(1-5):")
+    if user_input is not "5":
+        os.system('cls' if os.name=='nt' else 'clear')
+        print("Querying: " + COL_NAME[int(user_input) - 1])
+        query = generate_query(user_input)
+        test = input("Press enter to continue...")
     # TODO: Query DB with example from below
 
 os.system('cls' if os.name=='nt' else 'clear')
