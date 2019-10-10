@@ -257,6 +257,110 @@ def query_anatomy_nodes():
 
 
 '''
+GENES COLLECTION QUERY FUNCTION
+'''
+def query_gene_nodes():
+    search_string = input("Enter a gene to query(ID/value):")
+    regx = re.compile(search_string, re.IGNORECASE)
+    query = {'$or': [
+        {"identifier": {'$regex': regx}},
+        {"value": {'$regex': regx}}
+    ]}
+    count = count_documents(query, db.genes)
+    res = list(query_data_find(query, db.genes))
+    if count > 1:
+        index = 1
+        for doc in res:
+            print(str(index) + ") " + doc['identifier'] + " - " + doc['value'])
+            index += 1
+
+        desired_index = input("\nMultiple results, select desired gene:")
+        gene = res[int(desired_index) - 1]
+    elif count == 1:
+        gene = res[0]
+    else:
+        print("\nNo results found for query: '" + search_string + "'")
+        return
+
+    print("\nYou have selected:")
+    print(gene)
+    input("\nPress enter to query associated data with this gene...")
+    clear_screen()
+    print("Querying...")
+    edge_res = query_edges(gene['identifier'])
+
+    # Self
+    GrG = query_associated_data(edge_res, 'Gr>G', db.genes)
+    GcG = query_associated_data(edge_res, 'GcG', db.genes)
+    GiG = query_associated_data(edge_res, 'GiG', db.genes)
+
+    # Incoming Compound Edges
+    CuG = query_associated_data(edge_res, 'CuG', db.compounds, 'source_id')
+    CdG = query_associated_data(edge_res, 'CdG', db.compounds, 'source_id')
+    CbG = query_associated_data(edge_res, 'CbG', db.compounds, 'source_id')
+
+    # Incoming Disease Edges
+    DuG = query_associated_data(edge_res, 'DuG', db.diseases, 'source_id')
+    DdG = query_associated_data(edge_res, 'DdG', db.diseases, 'source_id')
+    DaG = query_associated_data(edge_res, 'DaG', db.diseases, 'source_id')
+
+    # Incoming Anatomy Edges
+    AuG = query_associated_data(edge_res, 'AuG', db.anatomy, 'source_id')
+    AdG = query_associated_data(edge_res, 'AdG', db.anatomy, 'source_id')
+    AeG = query_associated_data(edge_res, 'AeG', db.anatomy, 'source_id')
+
+    clear_screen()
+    # Printing results
+    print("==== " + gene['identifier'] + " ====")
+    print("Name: " + gene['value'])
+
+    print("==== Self Edge ====")
+    print("Regulates (Gr>G)")
+    for reg in GrG:
+        print_associated_results(reg)
+    print("Covaries (GcG)")
+    for cov in GcG:
+        print_associated_results(cov)
+    print("Interacts (GiG)")
+    for inter in GiG:
+        print_associated_results(inter)
+    print("==== Outgoing Edge ====")
+    print("*NONE*")
+
+    print("==== Incoming Compound Edge ====")
+    print("Upregulated by Compound (CuG):")
+    for upreg in CuG:
+        print_associated_results(upreg)
+    print("Downregulated by Compound (CdG):")
+    for downreg in CdG:
+        print_associated_results(downreg)
+    print("Binded by Compound (CbG):")
+    for binds in CbG:
+        print_associated_results(binds)
+
+    print("==== Incoming Disease Edge ====")
+    print("Upregulated by Disease (DuG):")
+    for upreg in DuG:
+        print_associated_results(upreg)
+    print("Downregulated by Disease (DdG):")
+    for downreg in DdG:
+        print_associated_results(downreg)
+    print("Associated by Disease (DaG):")
+    for assoc in DaG:
+        print_associated_results(assoc)
+
+    print("==== Incoming Anatomy Edge ====")
+    print("Upregulated by Anatomy (AuG):")
+    for upreg in AuG:
+        print_associated_results(upreg)
+    print("Downregulated by Anatomy (AdG):")
+    for downreg in AdG:
+        print_associated_results(downreg)
+    print("Expressed by Anatomy (AeG):")
+    for exp in AeG:
+        print_associated_results(exp)
+
+'''
 MAIN PROGRAM LOOP
 - Prints main menu
 - Calls collection query function based on user selection
@@ -274,7 +378,10 @@ while user_input is not "5":
             query_disease_nodes()
         elif user_input is "3":
             query_anatomy_nodes()
+        elif user_input is "4":
+            query_gene_nodes()
 
         input("\n\nPress enter to continue...")
+
 
 clear_screen()
