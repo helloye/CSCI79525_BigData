@@ -35,8 +35,8 @@ DownRegulates (DdG): [0...n<Gene::ID>]
 Associates (DaG): [0...n<Gene::ID>]
 
 ==== Incoming Edges ====
-Treated by Compound (CtD): [0...n<Disease::ID>]
-Palliated by Compound (CpD): [0...n<Disease::ID>]
+Treated by Compound (CtD): [0...n<Compound::ID>]
+Palliated by Compound (CpD): [0...n<Compound::ID>]
 ```
 
 ## Anatomy
@@ -53,7 +53,7 @@ DownRegulates (AdG): [0...n<Gene::ID>]
 Expresses (AeG): [0...n<Gene::ID>]
 
 ==== Incoming Edges ====
-Localized by Disease (DlA): [0...n<Anatomy::ID>]
+Localized by Disease (DlA): [0...n<Disease::ID>]
 ```
 
 ## Gene
