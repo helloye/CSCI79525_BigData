@@ -1,6 +1,5 @@
 """
-Utility helper functions to insert into db.
-TODO: Allow interfacing with different types of DB.
+Utility helper functions to insert into mongo db.
 """
 import os
 from pymongo import MongoClient

@@ -19,8 +19,8 @@ drop_db(db_client, DATABASE);
 db = db_client[DATABASE]
 
 # Loading nodes...
-node_file_total_lines = sum(1 for line in open('../data/nodes.tsv'))
-with open('../data/nodes.tsv') as tsvin:
+node_file_total_lines = sum(1 for line in open('../../data/nodes.tsv'))
+with open('../../data/nodes.tsv') as tsvin:
     reader = csv.reader(tsvin, delimiter='\t')
     count = 0
     for row in reader:
@@ -46,8 +46,8 @@ with open('../data/nodes.tsv') as tsvin:
 
 
 # Loading edges: 1.3mil count
-edges_file_total_lines = sum(1 for line in open('../data/edges.tsv'))
-with open('../data/edges.tsv') as tsvin:
+edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
+with open('../../data/edges.tsv') as tsvin:
     reader = csv.reader(tsvin, delimiter='\t')
     count = 0
     print("\n\nInserting Edges...this could take a while....\n\n")
