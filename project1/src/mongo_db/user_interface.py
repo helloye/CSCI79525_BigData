@@ -168,7 +168,7 @@ def query_disease_nodes():
     print("==== " + disease['identifier'] + " ====")
     print("Name: " + disease['value'])
     print("==== Self Edge ====")
-    print("Resembles (CrC):")
+    print("Resembles (DrD):")
     for resembling_diseases in DrD:
         print_associated_results(resembling_diseases)
     print("==== Outgoing Edge ====")
