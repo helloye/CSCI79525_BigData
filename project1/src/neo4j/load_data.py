@@ -67,4 +67,8 @@ CREATE (c)-[r:TREATS_DISEASE]->(b)
 
 * The above is the same as if we were to link it on CREATE:
 CREATE (c:COMPOUND {id:"Compound::DB00091",name:"Cyclosporine"})-[CtD:TREATES_DISEASE]->(d:Disease {id:"Disease::DOID:9074",name:"systemic lupus erythematosus"})
+
+*Utility Command Note*
+MATCH(n) RETURN n - Returns all node in graph
+MATCH(n) DETACH DELETE n - Deletes everything!!
 """
