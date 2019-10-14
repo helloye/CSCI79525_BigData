@@ -71,4 +71,7 @@ CREATE (c:COMPOUND {id:"Compound::DB00091",name:"Cyclosporine"})-[CtD:TREATES_DI
 *Utility Command Note*
 MATCH(n) RETURN n - Returns all node in graph
 MATCH(n) DETACH DELETE n - Deletes everything!!
+
+neo4j Python Driver Transaction Reference Notes:
+Reference: https://neo4j.com/docs/api/python-driver/current/transactions.html#transactions
 """
