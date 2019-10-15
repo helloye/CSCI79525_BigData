@@ -40,17 +40,17 @@ with open('../../data/nodes.tsv') as tsvin:
         # **WARNING** This will wipe all data in the graph db
         session.run("MATCH(n) DETACH DELETE n")
         for row in reader:
-            if count > 1:
-                if row[2] == 'Compound' and len(compound_nodes) < 100:
+            if count > 0:
+                if row[2] == 'Compound':
                     compound_nodes.append(row)
                     query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
-                if row[2] == 'Disease' and len(disease_nodes) < 100:
+                if row[2] == 'Disease':
                     disease_nodes.append(row)
                     query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
-                if row[2] == 'Anatomy' and len(anatomy_nodes) < 100:
+                if row[2] == 'Anatomy':
                     anatomy_nodes.append(row)
                     query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
-                if row[2] == 'Gene' and len(gene_nodes) < 500:
+                if row[2] == 'Gene':
                     gene_nodes.append(row)
                     query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
                 print("Running Query: " + query)
@@ -63,20 +63,23 @@ edge_data = []
 with open('../../data/edges.tsv') as tsvin:
     reader = csv.reader(tsvin, delimiter='\t')
     count = 0
-    for row in reader:
-        # Test
-        rel = row[1]
+    with driver.session() as session:
+        for row in reader:
+            # Test
+            rel = row[1]
 
-        if count > 1 and rel == "CtD":
-            edge_data.append(row)
-            source = row[0]
-            target = row[2]
-            rel_query = create_rel_query(source, rel, target)
-            print(rel_query)
-        if count >= 200:
-            break
-        if rel == "CtD":
-            count += 1
+            if count > 1 and rel == "CtD":
+                edge_data.append(row)
+                source = row[0]
+                target = row[2]
+                rel_query = create_rel_query(source, rel, target)
+                print("Running Rel Query:" + rel_query)
+                session.run(rel_query)
+            if count >= 500:
+                break
+            if rel == "CtD":
+                count += 1
+        session.close()
 
 
 # TODO: Build algorithm to create neo4j queries to insert relational graph into DB.
