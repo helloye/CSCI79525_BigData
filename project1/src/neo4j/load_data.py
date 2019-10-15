@@ -3,6 +3,25 @@ from neo4j import GraphDatabase
 
 uri = 'bolt://localhost:7687'
 
+rel_to_query_data_map = {
+    # Compound Source
+    "CrC": {"match_type": "MATCH (a:Compound), (b:Compound)", "rel": "RESEMBLES"},
+    "CtD": {"match_type": "MATCH (a:Compound), (b:Disease)", "rel": "TREATS"},
+    "CpD": {"match_type": "MATCH (a:Compound), (b:Disease)", "rel": "PALLIATES"},
+    "CuG": {"match_type": "MATCH (a:Compound), (b:Gene)", "rel": "UP_REGULATES"},
+    "CdG": {"match_type": "MATCH (a:Compound), (b:Gene)", "rel": "DOWN_REGULATES"},
+    "CbG": {"match_type": "MATCH (a:Compound), (b:Gene)", "rel": "BINDS"},
+    # Disease Source
+    "DrD": {"match_type": "MATCH (a:Disease), (b:Disease)", "rel": "RESEMBLES"},
+    # TODO: Create the rest of the mapping
+}
+
+
+def create_rel_query(s, r, t):
+    query_data = rel_to_query_data_map[r]
+    return query_data['match_type'] + " WHERE a.id='" + s + "' AND b.id='" + t + "' CREATE (a)-[r:" + query_data['rel'] + "]->(b)"
+
+
 try:
     driver = GraphDatabase.driver(uri, auth=("neo4j", "neo4j"))
     print('Neo4j Connection Established!!')
@@ -17,17 +36,27 @@ gene_nodes = []
 with open('../../data/nodes.tsv') as tsvin:
     reader = csv.reader(tsvin, delimiter='\t')
     count = 0
-    for row in reader:
-        if count > 1:
-            if row[2] == 'Compound':
-                compound_nodes.append(row)
-            if row[2] == 'Disease':
-                disease_nodes.append(row)
-            if row[2] == 'Anatomy':
-                anatomy_nodes.append(row)
-            if row[2] == 'Gene':
-                gene_nodes.append(row)
-        count += 1
+    with driver.session() as session:
+        # **WARNING** This will wipe all data in the graph db
+        session.run("MATCH(n) DETACH DELETE n")
+        for row in reader:
+            if count > 1:
+                if row[2] == 'Compound' and len(compound_nodes) < 100:
+                    compound_nodes.append(row)
+                    query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
+                if row[2] == 'Disease' and len(disease_nodes) < 100:
+                    disease_nodes.append(row)
+                    query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
+                if row[2] == 'Anatomy' and len(anatomy_nodes) < 100:
+                    anatomy_nodes.append(row)
+                    query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
+                if row[2] == 'Gene' and len(gene_nodes) < 500:
+                    gene_nodes.append(row)
+                    query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
+                print("Running Query: " + query)
+                session.run(query)
+            count += 1
+        session.close()
 
 edge_data = []
 
@@ -35,9 +64,19 @@ with open('../../data/edges.tsv') as tsvin:
     reader = csv.reader(tsvin, delimiter='\t')
     count = 0
     for row in reader:
-        if count > 1:
+        # Test
+        rel = row[1]
+
+        if count > 1 and rel == "CtD":
             edge_data.append(row)
-        count += 1
+            source = row[0]
+            target = row[2]
+            rel_query = create_rel_query(source, rel, target)
+            print(rel_query)
+        if count >= 200:
+            break
+        if rel == "CtD":
+            count += 1
 
 
 # TODO: Build algorithm to create neo4j queries to insert relational graph into DB.
@@ -59,6 +98,8 @@ CREATE (c:COMPOUND {id:"Compound::DB00091",name:"Cyclosporine"})-[CtD:TREATES_DI
 
 - Possible solution:
 1) Create all nodes first.
+CREATE(:Compound {id:"Compound::DB00091",name: "Cyclosporine"})
+
 2) Then run through the edge_data list, and use the MATCH command to CREATE the edges between two MATCH'd nodes.
 ex:
 MATCH (c:Compound),(d:Disease)
@@ -74,4 +115,6 @@ MATCH(n) DETACH DELETE n - Deletes everything!!
 
 neo4j Python Driver Transaction Reference Notes:
 Reference: https://neo4j.com/docs/api/python-driver/current/transactions.html#transactions
+
+10/14/19 - Note, visualizing ALL the nodes is REALLLYYYY EXPENSIVE. Look to limit it to the relation query to answer question 2 only...?
 """
