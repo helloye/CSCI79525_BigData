@@ -70,31 +70,39 @@ with open('../../data/nodes.tsv') as tsvin:
                 count += 1
                 print(query)
                 session.run(query)
+        session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE INDEX ON :Compound(id)')
+        session.run('CREATE INDEX ON :Disease(id)')
+        session.run('CREATE INDEX ON :Anatomy(id)')
+        session.run('CREATE INDEX ON :Gene(id)')
         session.close()
         print(str(count) + " Nodes Created.\n")
 
-edge_data = []
-edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
-with open('../../data/edges.tsv') as tsvin:
-    reader = csv.reader(tsvin, delimiter='\t')
-    count = 0
-    print("Creating relationships...\n")
-    with driver.session() as session:
-        for row in reader:
-            if count > 1:
-                edge_data.append(row)
-                source = row[0]
-                rel = row[1]
-                target = row[2]
-
-                # TODO: Build relationship in memory and only insert the ones needed?
-                rel_query = create_rel_query(source, rel, target)
-                session.run(rel_query)
-
-            count += 1
-            if count % 100 == 0:
-                print(str(count) + "/" + str(edges_file_total_lines))
-    session.close()
+# edge_data = []
+# edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
+# with open('../../data/edges.tsv') as tsvin:
+#     reader = csv.reader(tsvin, delimiter='\t')
+#     count = 0
+#     print("Creating relationships...\n")
+#     with driver.session() as session:
+#         for row in reader:
+#             if count > 1:
+#                 edge_data.append(row)
+#                 source = row[0]
+#                 rel = row[1]
+#                 target = row[2]
+#
+#                 # TODO: Build relationship in memory and only insert the ones needed?
+#                 rel_query = create_rel_query(source, rel, target)
+#                 session.run(rel_query)
+#
+#             count += 1
+#             if count % 100 == 0:
+#                 print(str(count) + "/" + str(edges_file_total_lines))
+#     session.close()
 
 
 # TODO: Build algorithm to create neo4j queries to insert relational graph into DB.
