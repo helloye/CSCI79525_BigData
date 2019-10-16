@@ -13,7 +13,18 @@ rel_to_query_data_map = {
     "CbG": {"match_type": "MATCH (a:Compound), (b:Gene)", "rel": "BINDS"},
     # Disease Source
     "DrD": {"match_type": "MATCH (a:Disease), (b:Disease)", "rel": "RESEMBLES"},
-    # TODO: Create the rest of the mapping
+    "DlG": {"match_type": "MATCH (a:Disease), (b:Anatomy)", "rel": "LOCALIZES"},
+    "DuG": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "UP_REGULATES"},
+    "DdD": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "DOWN_REGULATES"},
+    "DaD": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "ASSOCIATES"},
+    # Anatomy Source
+    "AuG": {"match_type": "MATCH (a:Anatomy), (b:Gene)", "rel": "UP_REGULATES"},
+    "AdG": {"match_type": "MATCH (a:Anatomy), (b:Gene)", "rel": "DOWN_REGULATES"},
+    "AeG": {"match_type": "MATCH (a:Anatomy), (b:Gene)", "rel": "EXPRESSES"},
+    # Gene Source
+    "Gr>G": {"match_type": "MATCH (a:Gene), (b:Gene)", "rel": "REGULATES"},
+    "GcG": {"match_type": "MATCH (a:Gene), (b:Gene)", "rel": "COVARIES"},
+    "GiG": {"match_type": "MATCH (a:Gene), (b:Gene)", "rel": "INTERACTS"},
 }
 
 
@@ -39,47 +50,51 @@ with open('../../data/nodes.tsv') as tsvin:
     with driver.session() as session:
         # **WARNING** This will wipe all data in the graph db
         session.run("MATCH(n) DETACH DELETE n")
+        count = 0
         for row in reader:
-            if count > 0:
-                if row[2] == 'Compound':
-                    compound_nodes.append(row)
-                    query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
-                if row[2] == 'Disease':
-                    disease_nodes.append(row)
-                    query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
-                if row[2] == 'Anatomy':
-                    anatomy_nodes.append(row)
-                    query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
-                if row[2] == 'Gene':
-                    gene_nodes.append(row)
-                    query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
-                print("Running Query: " + query)
+            query = ""
+            if row[2] == 'Compound':
+                compound_nodes.append(row)
+                query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
+            if row[2] == 'Disease':
+                disease_nodes.append(row)
+                query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
+            if row[2] == 'Anatomy':
+                anatomy_nodes.append(row)
+                query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
+            if row[2] == 'Gene':
+                gene_nodes.append(row)
+                query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
+
+            if query != "":
+                count += 1
+                print(query)
                 session.run(query)
-            count += 1
         session.close()
+        print(str(count) + " Nodes Created.\n")
 
 edge_data = []
-
+edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
 with open('../../data/edges.tsv') as tsvin:
     reader = csv.reader(tsvin, delimiter='\t')
     count = 0
+    print("Creating relationships...\n")
     with driver.session() as session:
         for row in reader:
-            # Test
-            rel = row[1]
-
-            if count > 1 and rel == "CtD":
+            if count > 1:
                 edge_data.append(row)
                 source = row[0]
+                rel = row[1]
                 target = row[2]
+
+                # TODO: Build relationship in memory and only insert the ones needed?
                 rel_query = create_rel_query(source, rel, target)
-                print("Running Rel Query:" + rel_query)
                 session.run(rel_query)
-            if count >= 500:
-                break
-            if rel == "CtD":
-                count += 1
-        session.close()
+
+            count += 1
+            if count % 100 == 0:
+                print(str(count) + "/" + str(edges_file_total_lines))
+    session.close()
 
 
 # TODO: Build algorithm to create neo4j queries to insert relational graph into DB.
@@ -120,4 +135,9 @@ neo4j Python Driver Transaction Reference Notes:
 Reference: https://neo4j.com/docs/api/python-driver/current/transactions.html#transactions
 
 10/14/19 - Note, visualizing ALL the nodes is REALLLYYYY EXPENSIVE. Look to limit it to the relation query to answer question 2 only...?
+
+10/15/19 - Note, it's gonna take a long time to insert all the edges, look to filter in memory and only insert the ones that answer question 2?
+
+Compound -Treats-> Disease 
+
 """
