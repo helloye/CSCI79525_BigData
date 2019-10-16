@@ -1,7 +1,6 @@
 import csv, re
 from neo4j import GraphDatabase
 
-uri = 'bolt://localhost:7687'
 
 rel_to_query_data_map = {
     # Compound Source
@@ -32,6 +31,11 @@ def create_rel_query(s, r, t):
     query_data = rel_to_query_data_map[r]
     return query_data['match_type'] + " WHERE a.id='" + s + "' AND b.id='" + t + "' CREATE (a)-[r:" + query_data['rel'] + "]->(b)"
 
+"""
+MAIN PROGRAM STARTS HERE
+"""
+
+uri = 'bolt://localhost:7687'
 
 try:
     driver = GraphDatabase.driver(uri, auth=("neo4j", "neo4j"))
@@ -44,6 +48,9 @@ disease_nodes = []
 anatomy_nodes = []
 gene_nodes = []
 
+"""
+LOADING NODES
+"""
 with open('../../data/nodes.tsv') as tsvin:
     reader = csv.reader(tsvin, delimiter='\t')
     count = 0
@@ -81,32 +88,45 @@ with open('../../data/nodes.tsv') as tsvin:
         session.close()
         print(str(count) + " Nodes Created.\n")
 
-# edge_data = []
-# edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
-# with open('../../data/edges.tsv') as tsvin:
-#     reader = csv.reader(tsvin, delimiter='\t')
-#     count = 0
-#     print("Creating relationships...\n")
-#     with driver.session() as session:
-#         for row in reader:
-#             if count > 1:
-#                 edge_data.append(row)
-#                 source = row[0]
-#                 rel = row[1]
-#                 target = row[2]
-#
-#                 # TODO: Build relationship in memory and only insert the ones needed?
-#                 rel_query = create_rel_query(source, rel, target)
-#                 session.run(rel_query)
-#
-#             count += 1
-#             if count % 100 == 0:
-#                 print(str(count) + "/" + str(edges_file_total_lines))
-#     session.close()
-
-
-# TODO: Build algorithm to create neo4j queries to insert relational graph into DB.
 """
+LOADING EDGE RELATIONS
+TODO: This is taking FOREVER!! :(
+"""
+edge_data = []
+edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
+with open('../../data/edges.tsv') as tsvin:
+    reader = csv.reader(tsvin, delimiter='\t')
+    count = 0
+    print("Creating relationships...\n")
+    with driver.session() as session:
+        for row in reader:
+            if count > 1:
+                edge_data.append(row)
+                source = row[0]
+                rel = row[1]
+                target = row[2]
+
+                rel_query = create_rel_query(source, rel, target)
+                """
+                TODO: Build relationship in memory and only insert the ones needed?
+                The query generated stops responding around ~30K mark
+                
+                Sample:
+                MATCH (a:<SOURCE_NODE>),(b:<TARGET_NODE>)
+                WHERE a.id='<SOURCE_ID>' AND b.id='<SOURCE_ID>'
+                CREATE (a)-[r:<RELATION_TYPE>]->(b)
+                """
+                session.run(rel_query)
+
+            count += 1
+            if count % 100 == 0:
+                print(str(count) + "/" + str(edges_file_total_lines))
+    session.close()
+
+
+"""
+==== MY NOTES ====
+
 Sample query:
 1) Compound::DB00091 -Treates-> Disease::DOID:9074 -Localizes Anatomy-> Anatomy::UBERON:0000043 
 2) Compound::DB00788 -Palliates-> Disease::DOID:9074
