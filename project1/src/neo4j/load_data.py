@@ -5,26 +5,43 @@ pp = pprint.PrettyPrinter(indent=4)
 
 rel_to_query_data_map = {
     # Compound Source
-    "CrC": {"match_type": "MATCH (a:Compound), (b:Compound)", "rel": "RESEMBLES"},
-    "CtD": {"match_type": "MATCH (a:Compound), (b:Disease)", "rel": "TREATS"},
-    "CpD": {"match_type": "MATCH (a:Compound), (b:Disease)", "rel": "PALLIATES"},
-    "CuG": {"match_type": "MATCH (a:Compound), (b:Gene)", "rel": "UP_REGULATES"},
-    "CdG": {"match_type": "MATCH (a:Compound), (b:Gene)", "rel": "DOWN_REGULATES"},
-    "CbG": {"match_type": "MATCH (a:Compound), (b:Gene)", "rel": "BINDS"},
+    "CrC": {"match_type": "MATCH (a:Compound {id: row.source}) MATCH (b:Compound {id: row.target})",
+            "rel": "RESEMBLES"},
+    "CtD": {"match_type": "MATCH (a:Compound {id: row.source}) MATCH (b:Disease {id: row.target})",
+            "rel": "TREATS"},
+    "CpD": {"match_type": "MATCH (a:Compound {id: row.source}) MATCH (b:Disease {id: row.target})",
+            "rel": "PALLIATES"},
+    "CuG": {"match_type": "MATCH (a:Compound {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "UP_REGULATES"},
+    "CdG": {"match_type": "MATCH (a:Compound {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "DOWN_REGULATES"},
+    "CbG": {"match_type": "MATCH (a:Compound {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "BINDS"},
     # Disease Source
-    "DrD": {"match_type": "MATCH (a:Disease), (b:Disease)", "rel": "RESEMBLES"},
-    "DlA": {"match_type": "MATCH (a:Disease), (b:Anatomy)", "rel": "LOCALIZES"},
-    "DuG": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "UP_REGULATES"},
-    "DdG": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "DOWN_REGULATES"},
-    "DaG": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "ASSOCIATES"},
+    "DrD": {"match_type": "MATCH (a:Disease {id: row.source}) MATCH (b:Disease {id: row.target})",
+            "rel": "RESEMBLES"},
+    "DlA": {"match_type": "MATCH (a:Disease {id: row.source}) MATCH (b:Anatomy {id: row.target})",
+            "rel": "LOCALIZES"},
+    "DuG": {"match_type": "MATCH (a:Disease {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "UP_REGULATES"},
+    "DdG": {"match_type": "MATCH (a:Disease {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "DOWN_REGULATES"},
+    "DaG": {"match_type": "MATCH (a:Disease {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "ASSOCIATES"},
     # Anatomy Source
-    "AuG": {"match_type": "MATCH (a:Anatomy), (b:Gene)", "rel": "UP_REGULATES"},
-    "AdG": {"match_type": "MATCH (a:Anatomy), (b:Gene)", "rel": "DOWN_REGULATES"},
-    "AeG": {"match_type": "MATCH (a:Anatomy), (b:Gene)", "rel": "EXPRESSES"},
+    "AuG": {"match_type": "MATCH (a:Anatomy {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "UP_REGULATES"},
+    "AdG": {"match_type": "MATCH (a:Anatomy {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "DOWN_REGULATES"},
+    "AeG": {"match_type": "MATCH (a:Anatomy {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "EXPRESSES"},
     # Gene Source
-    "Gr>G": {"match_type": "MATCH (a:Gene), (b:Gene)", "rel": "REGULATES"},
-    "GcG": {"match_type": "MATCH (a:Gene), (b:Gene)", "rel": "COVARIES"},
-    "GiG": {"match_type": "MATCH (a:Gene), (b:Gene)", "rel": "INTERACTS"},
+    "GrG": {"match_type": "MATCH (a:Gene {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "REGULATES"},
+    "GcG": {"match_type": "MATCH (a:Gene {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "COVARIES"},
+    "GiG": {"match_type": "MATCH (a:Gene {id: row.source}) MATCH (b:Gene {id: row.target})",
+            "rel": "INTERACTS"},
 }
 
 
@@ -52,77 +69,42 @@ gene_nodes = []
 """
 LOADING NODES
 """
-with open('../../data/nodes.tsv') as tsvin:
-    reader = csv.reader(tsvin, delimiter='\t')
-    count = 0
-    with driver.session() as session:
-        # **WARNING** This will wipe all data in the graph db
-        session.run("MATCH(n) DETACH DELETE n")
-        count = 0
-        for row in reader:
-            query = ""
-            if row[2] == 'Compound':
-                compound_nodes.append(row)
-                query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
-            if row[2] == 'Disease':
-                disease_nodes.append(row)
-                query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
-            if row[2] == 'Anatomy':
-                anatomy_nodes.append(row)
-                query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
-            if row[2] == 'Gene':
-                gene_nodes.append(row)
-                query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
-
-            if query != "":
-                count += 1
-                print(query)
-                session.run(query)
-        session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE INDEX ON :Compound(id)')
-        session.run('CREATE INDEX ON :Disease(id)')
-        session.run('CREATE INDEX ON :Anatomy(id)')
-        session.run('CREATE INDEX ON :Gene(id)')
-        session.close()
-        print(str(count) + " Nodes Created.\n")
-
-"""
-LOADING EDGE RELATIONS
-TODO: This is taking FOREVER!! :(
-"""
-# edge_data = []
-# edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
-# with open('../../data/edges.tsv') as tsvin:
+# with open('../../data/nodes.tsv') as tsvin:
 #     reader = csv.reader(tsvin, delimiter='\t')
 #     count = 0
-#     print("Creating relationships...\n")
 #     with driver.session() as session:
+#         # **WARNING** This will wipe all data in the graph db
+#         session.run("MATCH(n) DETACH DELETE n")
+#         count = 0
 #         for row in reader:
-#             if count > 1:
-#                 edge_data.append(row)
-#                 source = row[0]
-#                 rel = row[1]
-#                 target = row[2]
+#             query = ""
+#             if row[2] == 'Compound':
+#                 compound_nodes.append(row)
+#                 query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
+#             if row[2] == 'Disease':
+#                 disease_nodes.append(row)
+#                 query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
+#             if row[2] == 'Anatomy':
+#                 anatomy_nodes.append(row)
+#                 query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
+#             if row[2] == 'Gene':
+#                 gene_nodes.append(row)
+#                 query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
 #
-#                 rel_query = create_rel_query(source, rel, target)
-#                 """
-#                 TODO: Build relationship in memory and only insert the ones needed?
-#                 The query generated stops responding around ~30K mark
-#
-#                 Sample:
-#                 MATCH (a:<SOURCE_NODE>),(b:<TARGET_NODE>)
-#                 WHERE a.id='<SOURCE_ID>' AND b.id='<SOURCE_ID>'
-#                 CREATE (a)-[r:<RELATION_TYPE>]->(b)
-#                 """
-#                 session.run(rel_query)
-#
-#             count += 1
-#             if count % 100 == 0:
-#                 print(str(count) + "/" + str(edges_file_total_lines))
-#     session.close()
+#             if query != "":
+#                 count += 1
+#                 print(query)
+#                 session.run(query)
+#         session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
+#         session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
+#         session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
+#         session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
+#         session.run('CREATE INDEX ON :Compound(id)')
+#         session.run('CREATE INDEX ON :Disease(id)')
+#         session.run('CREATE INDEX ON :Anatomy(id)')
+#         session.run('CREATE INDEX ON :Gene(id)')
+#         session.close()
+#         print(str(count) + " Nodes Created.\n")
 
 """
 CONVERT TSV TO CSV FOR LOAD_CSV
@@ -136,7 +118,7 @@ csv_data = {
     # Anatomy Source
     "AuG": [], "AdG": [], "AeG": [],
     # Gene Source
-    "Gr>G": [], "GcG": [], "GiG": [],
+    "GrG": [], "GcG": [], "GiG": [],
 }
 
 edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
@@ -146,15 +128,19 @@ with open('../../data/edges.tsv', 'r') as tsvin:
         if count > 1:
             converted_line = re.sub("\t", ",", line)
             converted_data = converted_line.split(",")
-            csv_data[converted_data[1]].append(converted_line.rstrip())
-            print("Conversion Progress Line: " + str(count) + "/" + str(edges_file_total_lines) + ": " + converted_data[0] + " | " + converted_data[1] + " | " + converted_data[2])
+            key = converted_data[1]
+            if key == "Gr>G":
+                key = "GrG"
+            csv_data[key].append(converted_line.rstrip())
+            print("Conversion Progress: " + str(count) + "/" + str(edges_file_total_lines))
         count += 1
     tsvin.close()
 
+neo4j_import_folder = input("Absolute path of Neo4j import folder:")
 for key in csv_data:
     if key == "Gr>G":
-        key = "GregG"
-    filename = "../../data/cleaned/"+key+".csv"
+        key = "GrG"
+    filename = neo4j_import_folder+"/"+key+".csv"
     with open(filename, 'w') as f:
         f.write("source,edge,target\n")
         for line in csv_data[key]:
@@ -162,6 +148,9 @@ for key in csv_data:
         print("Loaded: " + filename)
     f.close()
 
+"""
+LOADING EDGE RELATIONS
+"""
 # TODO: Copy the generated csv files over to the neo4j import folder
 # TODO: Iterate over all the files and do a LOAD_CSV with proper labeling
 
@@ -219,6 +208,8 @@ USING PERIODIC COMMIT 1000
 LOAD CSV WITH HEADERS FROM 'file:///<FILE>.csv' AS row
 MATCH (source:<SOURCE_LABEL> {id: row.source})
 MATCH (target:<TARGET_LABEL> {id: row.target}) 
-CREATE (source)-[:<RELATION_TYPE> { rel: row.edge}]->(target)
+CREATE (source)-[:<RELATION_TYPE> {
+rel: row.edge, source: row.source, target: row.target
+}]->(target)
 
 """
