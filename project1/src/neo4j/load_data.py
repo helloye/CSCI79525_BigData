@@ -92,37 +92,49 @@ with open('../../data/nodes.tsv') as tsvin:
 LOADING EDGE RELATIONS
 TODO: This is taking FOREVER!! :(
 """
-edge_data = []
+# edge_data = []
+# edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
+# with open('../../data/edges.tsv') as tsvin:
+#     reader = csv.reader(tsvin, delimiter='\t')
+#     count = 0
+#     print("Creating relationships...\n")
+#     with driver.session() as session:
+#         for row in reader:
+#             if count > 1:
+#                 edge_data.append(row)
+#                 source = row[0]
+#                 rel = row[1]
+#                 target = row[2]
+#
+#                 rel_query = create_rel_query(source, rel, target)
+#                 """
+#                 TODO: Build relationship in memory and only insert the ones needed?
+#                 The query generated stops responding around ~30K mark
+#
+#                 Sample:
+#                 MATCH (a:<SOURCE_NODE>),(b:<TARGET_NODE>)
+#                 WHERE a.id='<SOURCE_ID>' AND b.id='<SOURCE_ID>'
+#                 CREATE (a)-[r:<RELATION_TYPE>]->(b)
+#                 """
+#                 session.run(rel_query)
+#
+#             count += 1
+#             if count % 100 == 0:
+#                 print(str(count) + "/" + str(edges_file_total_lines))
+#     session.close()
+
+"""
+CONVERT TSV TO CSV FOR LOAD_CSV
+"""
 edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
-with open('../../data/edges.tsv') as tsvin:
-    reader = csv.reader(tsvin, delimiter='\t')
-    count = 0
-    print("Creating relationships...\n")
-    with driver.session() as session:
-        for row in reader:
-            if count > 1:
-                edge_data.append(row)
-                source = row[0]
-                rel = row[1]
-                target = row[2]
-
-                rel_query = create_rel_query(source, rel, target)
-                """
-                TODO: Build relationship in memory and only insert the ones needed?
-                The query generated stops responding around ~30K mark
-                
-                Sample:
-                MATCH (a:<SOURCE_NODE>),(b:<TARGET_NODE>)
-                WHERE a.id='<SOURCE_ID>' AND b.id='<SOURCE_ID>'
-                CREATE (a)-[r:<RELATION_TYPE>]->(b)
-                """
-                session.run(rel_query)
-
+with open('../../data/edges.tsv', 'r') as tsvin:
+    with open('../../data/edges_csv.csv', 'w') as csvout:
+        count = 0
+        for line in tsvin:
+            converted_line = re.sub("\t", ",", line)
+            csvout.write(converted_line)
             count += 1
-            if count % 100 == 0:
-                print(str(count) + "/" + str(edges_file_total_lines))
-    session.close()
-
+            print("Conversion Progress Line: " + str(count) + "/" + str(edges_file_total_lines))
 
 """
 ==== MY NOTES ====
@@ -167,5 +179,37 @@ Reference: https://neo4j.com/docs/api/python-driver/current/transactions.html#tr
 10/15/19 - Note, it's gonna take a long time to insert all the edges, look to filter in memory and only insert the ones that answer question 2?
 
 Compound -Treats-> Disease 
+
+10/16/19 - LOAD_CSV Query:
+Assume sample_edges.csv is in the /import folder in neo4j server folder.
+
+USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///sample_edges.csv' AS row
+MATCH(source:<LABEL_TYPE> { id: row.source})
+MATCH(target:<LABEL_TYPE> { id: row.target})
+CREATE (source)-[:<RELATION_TYPE> { rel: row.metaedge}]->(target)
+
+Possible query:
+
+        session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
+
+USING PERIODIC COMMIT 10
+LOAD CSV WITH HEADERS FROM 'file:///sample_edges.csv' AS row
+(MATCH(source:Compound { id: row.source})
+OR MATCH(source:Disease { id: row.source})
+OR MATCH(source:Anatomy { id: row.source})
+OR MATCH(source:Gene { id: row.source})
+)
+AND
+(
+MATCH(target:Compound { id: row.target})
+OR MATCH(target:Disease { id: row.target})
+OR MATCH(target:Anatomy { id: row.target})
+OR MATCH(target:Gene { id: row.target})
+)
+CREATE (source)-[:REL { rel: row.metaedge}]->(target)
 
 """
