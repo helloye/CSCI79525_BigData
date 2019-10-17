@@ -138,8 +138,7 @@ csv_data = {
     # Gene Source
     "Gr>G": [], "GcG": [], "GiG": [],
 }
-# BIG TODO: Split them up into separate node specific csv files so we can
-# Query with labels to make insert faster...
+
 edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
 count = 0
 with open('../../data/edges.tsv', 'r') as tsvin:
@@ -153,6 +152,8 @@ with open('../../data/edges.tsv', 'r') as tsvin:
     tsvin.close()
 
 for key in csv_data:
+    if key == "Gr>G":
+        key = "GregG"
     filename = "../../data/cleaned/"+key+".csv"
     with open(filename, 'w') as f:
         f.write("source,edge,target\n")
@@ -160,6 +161,10 @@ for key in csv_data:
             f.write(line + "\n")
         print("Loaded: " + filename)
     f.close()
+
+# TODO: Copy the generated csv files over to the neo4j import folder
+# TODO: Iterate over all the files and do a LOAD_CSV with proper labeling
+
 
 """
 ==== MY NOTES ====
