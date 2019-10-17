@@ -214,6 +214,6 @@ USING PERIODIC COMMIT 1000
 LOAD CSV WITH HEADERS FROM 'file:///<FILE>.csv' AS row
 MATCH (source:<SOURCE_LABEL> {id: row.source})
 MATCH (target:<TARGET_LABEL> {id: row.target}) 
-CREATE (source)-[:REL { <RELATION_TYPE>: row.edge}]->(target)
+CREATE (source)-[:<RELATION_TYPE> { rel: row.edge}]->(target)
 
 """
