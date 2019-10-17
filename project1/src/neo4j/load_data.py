@@ -36,13 +36,13 @@ def create_rel_query(s, r, t):
 MAIN PROGRAM STARTS HERE
 """
 
-# uri = 'bolt://localhost:7687'
-#
-# try:
-#     driver = GraphDatabase.driver(uri, auth=("neo4j", "neo4j"))
-#     print('Neo4j Connection Established!!')
-# except:
-#     print('Neo4j Connection Error: ' + uri)
+uri = 'bolt://localhost:7687'
+
+try:
+    driver = GraphDatabase.driver(uri, auth=("neo4j", "neo4j"))
+    print('Neo4j Connection Established!!')
+except:
+    print('Neo4j Connection Error: ' + uri)
 
 compound_nodes = []
 disease_nodes = []
@@ -52,42 +52,42 @@ gene_nodes = []
 """
 LOADING NODES
 """
-# with open('../../data/nodes.tsv') as tsvin:
-#     reader = csv.reader(tsvin, delimiter='\t')
-#     count = 0
-#     with driver.session() as session:
-#         # **WARNING** This will wipe all data in the graph db
-#         session.run("MATCH(n) DETACH DELETE n")
-#         count = 0
-#         for row in reader:
-#             query = ""
-#             if row[2] == 'Compound':
-#                 compound_nodes.append(row)
-#                 query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
-#             if row[2] == 'Disease':
-#                 disease_nodes.append(row)
-#                 query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
-#             if row[2] == 'Anatomy':
-#                 anatomy_nodes.append(row)
-#                 query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
-#             if row[2] == 'Gene':
-#                 gene_nodes.append(row)
-#                 query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
-#
-#             if query != "":
-#                 count += 1
-#                 print(query)
-#                 session.run(query)
-#         session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
-#         session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
-#         session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
-#         session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
-#         session.run('CREATE INDEX ON :Compound(id)')
-#         session.run('CREATE INDEX ON :Disease(id)')
-#         session.run('CREATE INDEX ON :Anatomy(id)')
-#         session.run('CREATE INDEX ON :Gene(id)')
-#         session.close()
-#         print(str(count) + " Nodes Created.\n")
+with open('../../data/nodes.tsv') as tsvin:
+    reader = csv.reader(tsvin, delimiter='\t')
+    count = 0
+    with driver.session() as session:
+        # **WARNING** This will wipe all data in the graph db
+        session.run("MATCH(n) DETACH DELETE n")
+        count = 0
+        for row in reader:
+            query = ""
+            if row[2] == 'Compound':
+                compound_nodes.append(row)
+                query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
+            if row[2] == 'Disease':
+                disease_nodes.append(row)
+                query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
+            if row[2] == 'Anatomy':
+                anatomy_nodes.append(row)
+                query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
+            if row[2] == 'Gene':
+                gene_nodes.append(row)
+                query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
+
+            if query != "":
+                count += 1
+                print(query)
+                session.run(query)
+        session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
+        session.run('CREATE INDEX ON :Compound(id)')
+        session.run('CREATE INDEX ON :Disease(id)')
+        session.run('CREATE INDEX ON :Anatomy(id)')
+        session.run('CREATE INDEX ON :Gene(id)')
+        session.close()
+        print(str(count) + " Nodes Created.\n")
 
 """
 LOADING EDGE RELATIONS
@@ -152,9 +152,14 @@ with open('../../data/edges.tsv', 'r') as tsvin:
         count += 1
     tsvin.close()
 
-print("\n\nResults:")
-pp.pprint(csv_data)
-print("\n\n")
+for key in csv_data:
+    filename = "../../data/cleaned/"+key+".csv"
+    with open(filename, 'w') as f:
+        f.write("source,edge,target\n")
+        for line in csv_data[key]:
+            f.write(line + "\n")
+        print("Loaded: " + filename)
+    f.close()
 
 """
 ==== MY NOTES ====
@@ -205,12 +210,10 @@ Assume sample_edges.csv is in the /import folder in neo4j server folder.
 
 ** NOTE DO NOT QUERY WITHOUT LABELS!!**
 
-USING PERIODIC COMMIT 10
-LOAD CSV WITH HEADERS FROM 'file:///sample_edges.csv' AS row
-MATCH (source:<LABEL>
-{source.id = row.source}), 
-MATCH (target:<LABEL>
-{target.id = row.target}) 
-CREATE (source)-[:REL { <REL_LABEL>: row.metaedge}]->(target)
+USING PERIODIC COMMIT 1000
+LOAD CSV WITH HEADERS FROM 'file:///<FILE>.csv' AS row
+MATCH (source:<SOURCE_LABEL> {id: row.source})
+MATCH (target:<TARGET_LABEL> {id: row.target}) 
+CREATE (source)-[:REL { <RELATION_TYPE>: row.edge}]->(target)
 
 """
