@@ -125,7 +125,10 @@ TODO: This is taking FOREVER!! :(
 
 """
 CONVERT TSV TO CSV FOR LOAD_CSV
+Write to different CSV files based on edge relation type
 """
+# BIG TODO: Split them up into separate node specific csv files so we can
+# Query with labels to make insert faster...
 # edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
 # with open('../../data/edges.tsv', 'r') as tsvin:
 #     with open('../../data/edges_csv.csv', 'w') as csvout:
@@ -183,12 +186,14 @@ Compound -Treats-> Disease
 10/16/19 - LOAD_CSV Query:
 Assume sample_edges.csv is in the /import folder in neo4j server folder.
 
+** NOTE DO NOT QUERY WITHOUT LABELS!!**
+
 USING PERIODIC COMMIT 10
 LOAD CSV WITH HEADERS FROM 'file:///sample_edges.csv' AS row
-MATCH (source)
-WHERE source.id = row.source
-MATCH (target)
-WHERE target.id = row.target
-CREATE (source)-[:REL { rel: row.metaedge}]->(target)
+MATCH (source:<LABEL>
+{source.id = row.source}), 
+MATCH (target:<LABEL>
+{target.id = row.target}) 
+CREATE (source)-[:REL { <REL_LABEL>: row.metaedge}]->(target)
 
 """
