@@ -126,15 +126,15 @@ TODO: This is taking FOREVER!! :(
 """
 CONVERT TSV TO CSV FOR LOAD_CSV
 """
-edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
-with open('../../data/edges.tsv', 'r') as tsvin:
-    with open('../../data/edges_csv.csv', 'w') as csvout:
-        count = 0
-        for line in tsvin:
-            converted_line = re.sub("\t", ",", line)
-            csvout.write(converted_line)
-            count += 1
-            print("Conversion Progress Line: " + str(count) + "/" + str(edges_file_total_lines))
+# edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
+# with open('../../data/edges.tsv', 'r') as tsvin:
+#     with open('../../data/edges_csv.csv', 'w') as csvout:
+#         count = 0
+#         for line in tsvin:
+#             converted_line = re.sub("\t", ",", line)
+#             csvout.write(converted_line)
+#             count += 1
+#             print("Conversion Progress Line: " + str(count) + "/" + str(edges_file_total_lines))
 
 """
 ==== MY NOTES ====
@@ -183,33 +183,12 @@ Compound -Treats-> Disease
 10/16/19 - LOAD_CSV Query:
 Assume sample_edges.csv is in the /import folder in neo4j server folder.
 
-USING PERIODIC COMMIT 500
-LOAD CSV WITH HEADERS FROM 'file:///sample_edges.csv' AS row
-MATCH(source:<LABEL_TYPE> { id: row.source})
-MATCH(target:<LABEL_TYPE> { id: row.target})
-CREATE (source)-[:<RELATION_TYPE> { rel: row.metaedge}]->(target)
-
-Possible query:
-
-        session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
-
 USING PERIODIC COMMIT 10
 LOAD CSV WITH HEADERS FROM 'file:///sample_edges.csv' AS row
-(MATCH(source:Compound { id: row.source})
-OR MATCH(source:Disease { id: row.source})
-OR MATCH(source:Anatomy { id: row.source})
-OR MATCH(source:Gene { id: row.source})
-)
-AND
-(
-MATCH(target:Compound { id: row.target})
-OR MATCH(target:Disease { id: row.target})
-OR MATCH(target:Anatomy { id: row.target})
-OR MATCH(target:Gene { id: row.target})
-)
+MATCH (source)
+WHERE source.id = row.source
+MATCH (target)
+WHERE target.id = row.target
 CREATE (source)-[:REL { rel: row.metaedge}]->(target)
 
 """
