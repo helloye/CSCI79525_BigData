@@ -1,6 +1,7 @@
-import csv, re
+import csv, re, pprint
 from neo4j import GraphDatabase
 
+pp = pprint.PrettyPrinter(indent=4)
 
 rel_to_query_data_map = {
     # Compound Source
@@ -12,10 +13,10 @@ rel_to_query_data_map = {
     "CbG": {"match_type": "MATCH (a:Compound), (b:Gene)", "rel": "BINDS"},
     # Disease Source
     "DrD": {"match_type": "MATCH (a:Disease), (b:Disease)", "rel": "RESEMBLES"},
-    "DlG": {"match_type": "MATCH (a:Disease), (b:Anatomy)", "rel": "LOCALIZES"},
+    "DlA": {"match_type": "MATCH (a:Disease), (b:Anatomy)", "rel": "LOCALIZES"},
     "DuG": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "UP_REGULATES"},
-    "DdD": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "DOWN_REGULATES"},
-    "DaD": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "ASSOCIATES"},
+    "DdG": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "DOWN_REGULATES"},
+    "DaG": {"match_type": "MATCH (a:Disease), (b:Gene)", "rel": "ASSOCIATES"},
     # Anatomy Source
     "AuG": {"match_type": "MATCH (a:Anatomy), (b:Gene)", "rel": "UP_REGULATES"},
     "AdG": {"match_type": "MATCH (a:Anatomy), (b:Gene)", "rel": "DOWN_REGULATES"},
@@ -35,13 +36,13 @@ def create_rel_query(s, r, t):
 MAIN PROGRAM STARTS HERE
 """
 
-uri = 'bolt://localhost:7687'
-
-try:
-    driver = GraphDatabase.driver(uri, auth=("neo4j", "neo4j"))
-    print('Neo4j Connection Established!!')
-except:
-    print('Neo4j Connection Error: ' + uri)
+# uri = 'bolt://localhost:7687'
+#
+# try:
+#     driver = GraphDatabase.driver(uri, auth=("neo4j", "neo4j"))
+#     print('Neo4j Connection Established!!')
+# except:
+#     print('Neo4j Connection Error: ' + uri)
 
 compound_nodes = []
 disease_nodes = []
@@ -51,42 +52,42 @@ gene_nodes = []
 """
 LOADING NODES
 """
-with open('../../data/nodes.tsv') as tsvin:
-    reader = csv.reader(tsvin, delimiter='\t')
-    count = 0
-    with driver.session() as session:
-        # **WARNING** This will wipe all data in the graph db
-        session.run("MATCH(n) DETACH DELETE n")
-        count = 0
-        for row in reader:
-            query = ""
-            if row[2] == 'Compound':
-                compound_nodes.append(row)
-                query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
-            if row[2] == 'Disease':
-                disease_nodes.append(row)
-                query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
-            if row[2] == 'Anatomy':
-                anatomy_nodes.append(row)
-                query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
-            if row[2] == 'Gene':
-                gene_nodes.append(row)
-                query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
-
-            if query != "":
-                count += 1
-                print(query)
-                session.run(query)
-        session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE INDEX ON :Compound(id)')
-        session.run('CREATE INDEX ON :Disease(id)')
-        session.run('CREATE INDEX ON :Anatomy(id)')
-        session.run('CREATE INDEX ON :Gene(id)')
-        session.close()
-        print(str(count) + " Nodes Created.\n")
+# with open('../../data/nodes.tsv') as tsvin:
+#     reader = csv.reader(tsvin, delimiter='\t')
+#     count = 0
+#     with driver.session() as session:
+#         # **WARNING** This will wipe all data in the graph db
+#         session.run("MATCH(n) DETACH DELETE n")
+#         count = 0
+#         for row in reader:
+#             query = ""
+#             if row[2] == 'Compound':
+#                 compound_nodes.append(row)
+#                 query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
+#             if row[2] == 'Disease':
+#                 disease_nodes.append(row)
+#                 query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
+#             if row[2] == 'Anatomy':
+#                 anatomy_nodes.append(row)
+#                 query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
+#             if row[2] == 'Gene':
+#                 gene_nodes.append(row)
+#                 query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
+#
+#             if query != "":
+#                 count += 1
+#                 print(query)
+#                 session.run(query)
+#         session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
+#         session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
+#         session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
+#         session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
+#         session.run('CREATE INDEX ON :Compound(id)')
+#         session.run('CREATE INDEX ON :Disease(id)')
+#         session.run('CREATE INDEX ON :Anatomy(id)')
+#         session.run('CREATE INDEX ON :Gene(id)')
+#         session.close()
+#         print(str(count) + " Nodes Created.\n")
 
 """
 LOADING EDGE RELATIONS
@@ -127,17 +128,33 @@ TODO: This is taking FOREVER!! :(
 CONVERT TSV TO CSV FOR LOAD_CSV
 Write to different CSV files based on edge relation type
 """
+csv_data = {
+    # Compound Source
+    "CrC": [], "CtD": [], "CpD": [], "CuG": [], "CdG": [], "CbG": [],
+    # Disease Source
+    "DrD": [], "DlA": [], "DuG": [], "DdG": [], "DaG": [],
+    # Anatomy Source
+    "AuG": [], "AdG": [], "AeG": [],
+    # Gene Source
+    "Gr>G": [], "GcG": [], "GiG": [],
+}
 # BIG TODO: Split them up into separate node specific csv files so we can
 # Query with labels to make insert faster...
-# edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
-# with open('../../data/edges.tsv', 'r') as tsvin:
-#     with open('../../data/edges_csv.csv', 'w') as csvout:
-#         count = 0
-#         for line in tsvin:
-#             converted_line = re.sub("\t", ",", line)
-#             csvout.write(converted_line)
-#             count += 1
-#             print("Conversion Progress Line: " + str(count) + "/" + str(edges_file_total_lines))
+edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
+count = 0
+with open('../../data/edges.tsv', 'r') as tsvin:
+    for line in tsvin:
+        if count > 1:
+            converted_line = re.sub("\t", ",", line)
+            converted_data = converted_line.split(",")
+            csv_data[converted_data[1]].append(converted_line.rstrip())
+            print("Conversion Progress Line: " + str(count) + "/" + str(edges_file_total_lines) + ": " + converted_data[0] + " | " + converted_data[1] + " | " + converted_data[2])
+        count += 1
+    tsvin.close()
+
+print("\n\nResults:")
+pp.pprint(csv_data)
+print("\n\n")
 
 """
 ==== MY NOTES ====
