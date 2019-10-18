@@ -25,6 +25,13 @@ def insert_data(data, col):
         print('Insert Error')
 
 
+def insert_many_data(list_data, col):
+    try:
+        col.insert_many(list_data)
+    except:
+        print('Insert Error')
+
+
 def count_documents(query, col):
     try:
         return col.count_documents(query)

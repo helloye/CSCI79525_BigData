@@ -64,7 +64,13 @@ def query_compound_nodes():
             print(str(index) + ") " + doc['identifier'] + " - " + doc['value'])
             index += 1
 
-        desired_index = input("\nMultiple results, select desired compound:")
+        desired_index = None
+        while desired_index is None:
+            desired_index = input("\nMultiple results, select desired compound[1-"+str(count)+"]:")
+            if not desired_index.isdigit() or int(desired_index)<1 or int(desired_index)>count:
+                print("Please enter # for one of the results above...")
+                desired_index = None
+
         compound = res[int(desired_index) - 1]
     elif count == 1:
         compound = res[0]
@@ -135,7 +141,13 @@ def query_disease_nodes():
             print(str(index) + ") " + doc['identifier'] + " - " + doc['value'])
             index += 1
 
-        desired_index = input("\nMultiple results, select desired disease:")
+        desired_index = None
+        while desired_index is None:
+            desired_index = input("\nMultiple results, select desired disease[1-"+str(count)+"]:")
+            if not desired_index.isdigit() or int(desired_index)<1 or int(desired_index)>count:
+                print("Please enter # for one of the results above...")
+                desired_index = None
+
         disease = res[int(desired_index) - 1]
     elif count == 1:
         disease = res[0]
@@ -211,7 +223,13 @@ def query_anatomy_nodes():
             print(str(index) + ") " + doc['identifier'] + " - " + doc['value'])
             index += 1
 
-        desired_index = input("\nMultiple results, select desired anatomy:")
+        desired_index = None
+        while desired_index is None:
+            desired_index = input("\nMultiple results, select desired anatomy[1-"+str(count)+"]:")
+            if not desired_index.isdigit() or int(desired_index)<1 or int(desired_index)>count:
+                print("Please enter # for one of the results above...")
+                desired_index = None
+
         anatomy = res[int(desired_index) - 1]
     elif count == 1:
         anatomy = res[0]
@@ -274,7 +292,13 @@ def query_gene_nodes():
             print(str(index) + ") " + doc['identifier'] + " - " + doc['value'])
             index += 1
 
-        desired_index = input("\nMultiple results, select desired gene:")
+        desired_index = None
+        while desired_index is None:
+            desired_index = input("\nMultiple results, select desired gene[1-"+str(count)+"]:")
+            if not desired_index.isdigit() or int(desired_index)<1 or int(desired_index)>count:
+                print("Please enter # for one of the results above...")
+                desired_index = None
+
         gene = res[int(desired_index) - 1]
     elif count == 1:
         gene = res[0]
@@ -380,6 +404,8 @@ while user_input is not "5":
             query_anatomy_nodes()
         elif user_input is "4":
             query_gene_nodes()
+        else:
+            print("Unsupported option.")
 
         input("\n\nPress enter to continue...")
 

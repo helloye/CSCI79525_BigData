@@ -2,8 +2,8 @@
 This file parses the 2 tsv files in the data folder and inserts
 the data into the database
 """
-import csv
-from db_helper import get_client, insert_data, drop_db, insert_progress_printer
+import csv, os
+from db_helper import get_client, insert_data, insert_many_data, drop_db, insert_progress_printer
 
 # Actual
 DATABASE = 'csci79525_proj1'
@@ -47,10 +47,10 @@ with open('../../data/nodes.tsv') as tsvin:
 
 # Loading edges: 1.3mil count
 edges_file_total_lines = sum(1 for line in open('../../data/edges.tsv'))
+edge_data = []
 with open('../../data/edges.tsv') as tsvin:
     reader = csv.reader(tsvin, delimiter='\t')
     count = 0
-    print("\n\nInserting Edges...this could take a while....\n\n")
     for row in reader:
         if count > 0:
             data = {
@@ -59,10 +59,12 @@ with open('../../data/edges.tsv') as tsvin:
                 "target_id": row[2]
             }
 
-            insert_data(data, db.edges)
-
+            edge_data.append(data)
         count += 1
-        insert_progress_printer(edges_file_total_lines, count, 'Edges Insert', 1, False)
-    insert_progress_printer(node_file_total_lines, count, 'Node Insert', 1, False)
-
 tsvin.close()
+
+
+print("\nInserting edge data into db.edges...")
+insert_many_data(edge_data, db.edges)
+input("\nDone! Press any key to continue...")
+os.system('cls' if os.name=='nt' else 'clear')
