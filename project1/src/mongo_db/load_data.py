@@ -41,7 +41,7 @@ with open('../../data/nodes.tsv') as tsvin:
                 insert_data(data, db.diseases)
 
         count += 1
-        insert_progress_printer(node_file_total_lines, count, 'Node Insert', 300, True)
+        insert_progress_printer(node_file_total_lines, count, 'Node Insert', 1000, True)
     insert_progress_printer(node_file_total_lines, count, 'Node Insert', 1, True)
 
 
