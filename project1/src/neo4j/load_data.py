@@ -1,7 +1,9 @@
-import csv, re, pprint
+import pprint, os
 from neo4j import GraphDatabase
 
 pp = pprint.PrettyPrinter(indent=4)
+
+node_keys = {"Compound", "Disease", "Anatomy", "Gene"}
 
 rel_to_query_data_map = {
     # Compound Source
@@ -61,57 +63,33 @@ try:
 except:
     print('Neo4j Connection Error: ' + uri)
 
-compound_nodes = []
-disease_nodes = []
-anatomy_nodes = []
-gene_nodes = []
-
 """
 LOADING NODES
 """
-with open('../../data/nodes.tsv') as tsvin:
-    reader = csv.reader(tsvin, delimiter='\t')
-    count = 0
-    with driver.session() as session:
-        # **WARNING** This will wipe all data in the graph db
-        session.run("MATCH(n) DETACH DELETE n")
-        count = 0
-        for row in reader:
-            query = ""
-            if row[2] == 'Compound':
-                compound_nodes.append(row)
-                query = 'CREATE(:Compound {id:"'+row[0]+'",name: "'+row[1]+'"})'
-            if row[2] == 'Disease':
-                disease_nodes.append(row)
-                query = 'CREATE(:Disease {id:"'+row[0]+'",name: "'+row[1]+'"})'
-            if row[2] == 'Anatomy':
-                anatomy_nodes.append(row)
-                query = 'CREATE(:Anatomy {id:"'+row[0]+'",name: "'+row[1]+'"})'
-            if row[2] == 'Gene':
-                gene_nodes.append(row)
-                query = 'CREATE(:Gene {id:"'+row[0]+'",name: "'+row[1]+'"})'
+with driver.session() as session:
+    for key in node_keys:
+        query = "USING PERIODIC COMMIT 1000 " \
+                "LOAD CSV WITH HEADERS FROM 'file:///"+key+".csv' AS row" \
+                "\nCREATE(:"+key+" {id: row.id, name: row.name})"
+        print("\nRunning Query:\n")
+        print(query + "\n")
+        session.run(query)
+    session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
+    session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
+    session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
+    session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
+    session.run('CREATE INDEX ON :Compound(id)')
+    session.run('CREATE INDEX ON :Disease(id)')
+    session.run('CREATE INDEX ON :Anatomy(id)')
+    session.run('CREATE INDEX ON :Gene(id)')
+    session.close()
 
-            if query != "":
-                count += 1
-                print(query)
-                session.run(query)
-        session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
-        session.run('CREATE INDEX ON :Compound(id)')
-        session.run('CREATE INDEX ON :Disease(id)')
-        session.run('CREATE INDEX ON :Anatomy(id)')
-        session.run('CREATE INDEX ON :Gene(id)')
-        session.close()
-        print(str(count) + " Nodes Created.\n")
+input("\n\nNodes added to graph. Press enter to continue adding edges...\n\n")
+
 
 """
 LOADING EDGE RELATIONS
 """
-# TODO: Copy the generated csv files over to the neo4j import folder
-# TODO: Iterate over all the files and do a LOAD_CSV with proper labeling
-
 # TESTING
 # neo4j_import_folder = '/Users/helloye/Documents/CSCI/neo4j-community-3.5.11/import'
 
@@ -119,7 +97,7 @@ with driver.session() as session:
     for key in rel_to_query_data_map:
         # full_file_path = neo4j_import_folder + "/" + key + '.csv'
         rel_data = rel_to_query_data_map[key]
-        query = "USING PERIODIC COMMIT 1000 " \
+        query = "USING PERIODIC COMMIT 10000 " \
                 "LOAD CSV WITH HEADERS FROM 'file:///"+key+".csv' AS row" \
                 "\n" + rel_data['match_type'] + "\n" \
                 "CREATE (a)-[:"+rel_data['rel']+" {" \
@@ -129,6 +107,9 @@ with driver.session() as session:
         print(query)
         session.run(query)
 session.close()
+
+input("Edges added. Press enter to finish loading data....")
+os.system('cls' if os.name=='nt' else 'clear')
 
 """
 ==== MY NOTES ====
