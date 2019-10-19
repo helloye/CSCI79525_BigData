@@ -63,10 +63,15 @@ try:
 except:
     print('Neo4j Connection Error: ' + uri)
 
-"""
-LOADING NODES
-"""
+
 with driver.session() as session:
+    # Removing all data from DB ***
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("Cleaning graph, deleting all data from neo4j db...\n")
+    session.run("MATCH(n) DETACH DELETE n")
+    """
+    LOADING NODES
+    """
     for key in node_keys:
         query = "USING PERIODIC COMMIT 1000 " \
                 "LOAD CSV WITH HEADERS FROM 'file:///"+key+".csv' AS row" \
@@ -78,22 +83,13 @@ with driver.session() as session:
     session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
     session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
     session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
-    session.run('CREATE INDEX ON :Compound(id)')
-    session.run('CREATE INDEX ON :Disease(id)')
-    session.run('CREATE INDEX ON :Anatomy(id)')
-    session.run('CREATE INDEX ON :Gene(id)')
-    session.close()
 
-input("\n\nNodes added to graph. Press enter to continue adding edges...\n\n")
+    input("\n\nNodes added to graph. Press enter to continue adding edges...\n\n")
 
+    """
+    LOADING EDGE RELATIONS
+    """
 
-"""
-LOADING EDGE RELATIONS
-"""
-# TESTING
-# neo4j_import_folder = '/Users/helloye/Documents/CSCI/neo4j-community-3.5.11/import'
-
-with driver.session() as session:
     for key in rel_to_query_data_map:
         # full_file_path = neo4j_import_folder + "/" + key + '.csv'
         rel_data = rel_to_query_data_map[key]
@@ -109,7 +105,7 @@ with driver.session() as session:
 session.close()
 
 input("Edges added. Press enter to finish loading data....")
-os.system('cls' if os.name=='nt' else 'clear')
+os.system('cls' if os.name == 'nt' else 'clear')
 
 """
 ==== MY NOTES ====
