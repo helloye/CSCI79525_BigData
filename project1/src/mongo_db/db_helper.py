@@ -27,7 +27,7 @@ def insert_data(data, col):
 
 def insert_many_data(list_data, col):
     try:
-        col.insert_many(list_data)
+        return col.insert_many(list_data)
     except:
         print('Insert Error')
 

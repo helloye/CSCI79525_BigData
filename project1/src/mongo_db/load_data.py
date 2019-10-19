@@ -56,12 +56,26 @@ print('Batch inserting nodes...'
       '\n  "identifier": <NODE_ID>,'
       '\n  "value": <NODE_VALUE>'
       '\n  "type": <NODE_TYPE>'
-      '})')
+      '})\n')
 
-insert_many_data(compound_batch, db.compounds)
-insert_many_data(disease_batch, db.diseases)
-insert_many_data(anatomy_batch, db.anatomy)
-insert_many_data(gene_batch, db.genes)
+total_node_inserted = 0
+inserted_count = len(insert_many_data(compound_batch, db.compounds).inserted_ids)
+print(str(inserted_count) + " compound nodes inserted.")
+total_node_inserted += inserted_count
+
+inserted_count = len(insert_many_data(disease_batch, db.diseases).inserted_ids)
+print(str(inserted_count) + " disease nodes inserted.")
+total_node_inserted += inserted_count
+
+inserted_count = len(insert_many_data(anatomy_batch, db.anatomy).inserted_ids)
+print(str(inserted_count) + " anatomy nodes inserted.")
+total_node_inserted += inserted_count
+
+inserted_count = len(insert_many_data(gene_batch, db.genes).inserted_ids)
+print(str(inserted_count) + " gene nodes inserted.\n")
+total_node_inserted += inserted_count
+
+print(str(total_node_inserted) + " total nodes inserted!")
 
 
 # Loading edges: 1.3mil count
@@ -88,7 +102,9 @@ print('\n\nBatch inserting edges...'
       '\n  "source_id": <SOURCE_NODE_ID>,'
       '\n  "edge_type": <EDGE_TYPE>'
       '\n  "target_id": <TARGET_NODE_ID>'
-      '})')
-insert_many_data(edge_data, db.edges)
+      '})\n')
+inserted_count = len(insert_many_data(edge_data, db.edges).inserted_ids)
+
+print(str(inserted_count) + " total edges inserted!")
 input("\nDone! Press any key to continue...")
 os.system('cls' if os.name == 'nt' else 'clear')

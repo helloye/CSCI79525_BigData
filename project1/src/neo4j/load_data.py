@@ -63,11 +63,14 @@ try:
 except:
     print('Neo4j Connection Error: ' + uri)
 
+node_count = 0
+edge_count = 0
 
 with driver.session() as session:
     # Removing all data from DB ***
     os.system('cls' if os.name == 'nt' else 'clear')
-    print("Cleaning graph, deleting all data from neo4j db...\n")
+    print("Cleaning graph, deleting all data from neo4j db...")
+    print("Running: MATCH(n) DETACH DELETE n\n")
     session.run("MATCH(n) DETACH DELETE n")
     """
     LOADING NODES
@@ -75,16 +78,17 @@ with driver.session() as session:
     for key in node_keys:
         query = "USING PERIODIC COMMIT 1000 " \
                 "LOAD CSV WITH HEADERS FROM 'file:///"+key+".csv' AS row" \
-                "\nCREATE(:"+key+" {id: row.id, name: row.name})"
+                "\nCREATE(n:"+key+" {id: row.id, name: row.name}) RETURN count(n)"
         print("\nRunning Query:\n")
         print(query + "\n")
-        session.run(query)
+        res = session.run(query)
+        node_count += res.single()[0]
     session.run('CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE')
     session.run('CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE')
     session.run('CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE')
-    session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE')
+    session.run('CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE\n\n')
 
-    input("\n\nNodes added to graph. Press enter to continue adding edges...\n\n")
+    input("Nodes added to graph. Press enter to continue adding edges...\n\n")
 
     """
     LOADING EDGE RELATIONS
@@ -96,15 +100,20 @@ with driver.session() as session:
         query = "USING PERIODIC COMMIT 10000 " \
                 "LOAD CSV WITH HEADERS FROM 'file:///"+key+".csv' AS row" \
                 "\n" + rel_data['match_type'] + "\n" \
-                "CREATE (a)-[:"+rel_data['rel']+" {" \
+                "CREATE (a)-[e:"+rel_data['rel']+" {" \
                 "rel: row.edge, source: row.source, target: row.target" \
-                "}]->(b)"
+                "}]->(b) RETURN count(e)"
         print("\nRunning Query:\n")
         print(query)
-        session.run(query)
+        res = session.run(query)
+        edge_count += res.single()[0]
 session.close()
 
-input("Edges added. Press enter to finish loading data....")
+input("\n\nEdges added. Press enter to continue....\n\n")
+os.system('cls' if os.name == 'nt' else 'clear')
+print(str(node_count) + " Nodes inserted.")
+print(str(edge_count) + " Edges inserted.\n\n")
+input("Press enter to finish loading data graph...")
 os.system('cls' if os.name == 'nt' else 'clear')
 
 """
