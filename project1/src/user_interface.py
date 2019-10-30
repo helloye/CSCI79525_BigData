@@ -1,7 +1,8 @@
 """
 This file will serve as the main user interface with the db
 """
-import os, re
+import os, re, sys
+sys.path.append('./db_helper/')
 from db_helper import get_client, query_data_find, count_documents
 
 DATABASE = 'csci79525_proj1'
@@ -11,7 +12,7 @@ db = db_client[DATABASE]
 
 
 def clear_screen():
-    os.system('cls' if os.name=='nt' else 'clear')
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 def print_menu():
@@ -395,7 +396,7 @@ while user_input is not "5":
     print_menu()
     user_input = input("\nInput(1-5):")
     if user_input is not "5":
-        os.system('cls' if os.name=='nt' else 'clear')
+        os.system('cls' if os.name == 'nt' else 'clear')
         if user_input is "1":
             query_compound_nodes()
         elif user_input is "2":

@@ -1,5 +1,7 @@
 """
-Utility helper functions to insert into mongo db.
+Utility helper functions to insert into db.
+Mostly mongo client.
+TODO: Write utlilty functions for neo4j?
 """
 import os
 from pymongo import MongoClient

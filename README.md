@@ -1,10 +1,47 @@
 # CSCI79525_BigData
 Projects Repo for Hunter College CSCI79525 - FA 19
 
-`./src/mongodb` - Contains load data/CLI source code to interface with mongo db. Answers question 1 on the project requirement pdf.
+`./src/mongodb` - Contains source code to clean and load data into mongo db.
 
-`./src/neo4j` - Contains load data/CLI source code to interface with neo4j db. Answers question 2 on the project requirement pdf.
+`./src/neo4j` - Contains source code to clean and load data into neo4j db.
 
-Instructions and pre-req installation instruction (README) located in the respective dir.
+`./src/user_interface.py` - Script to run the CLI to interact with the data.
+
+See specific instructions below to load data into the respective db's.
 
 Both sets of source code uses `Python 3.7.3` to interface with the db and to extract/load the data in the db. Please ensure you have the correct version installed. 
+
+
+### Running MongoDB Load Data
+
+Pre-requisite:
+- Have `mongodb` installed and the daemon running, allowing for connection at the default `localhost:27017`
+  - See installation instruction here: https://docs.mongodb.com/manual/administration/install-community/
+- Have `pymongo` library installed to interface with `mongodb`.
+  - Install `pymongo` using pip: `pip install pymongo`
+  
+Run instructions:
+- Assuming you are in this dir (`/project1/src/mongo_db`)
+  - To load data run: `python load_data.py`
+    - This might take a while, especially loading the edges.
+
+### Running Neo4J Load Data
+
+Pre-req:
+- Neo4j Community Edition: https://neo4j.com/download-center/#community
+  - Used `Neo4j Community Edition 3.5.11`
+  - This version requires `Java 8`!!
+- Python Bolt driver for neo4j
+  - Official Python library for interfacing with neo4j
+  - https://neo4j.com/docs/api/python-driver/current/#installation
+   
+Optional Pre-req
+- Neo4j Desktop https://neo4j.com/download/
+  - Used to help interface with neo4j dbs.
+  
+Run instructions:
+- Assuming you are in this dir (`/project1/src/neo4j`)
+  - First you'll need to clean the data: `python clean_data.py`
+  - It'll ask you to enter the location of the neo4j import folder. Enter the ABSOLUTE path of the import folder location. (ex: `/<ABSOLUTE_PATH>/neo4j-community-3.5.11/import'`)
+  - This script will clean up the data into CSV format, ready to be loaded into neo4j using the load CSV tool.
+- Once the above script is done running, run the load data script: `python load_data.py`

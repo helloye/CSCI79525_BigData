@@ -2,8 +2,9 @@
 This file parses the 2 tsv files in the data folder and inserts
 the data into the database
 """
-import csv, os
-from db_helper import get_client, insert_data, insert_many_data, drop_db, insert_progress_printer
+import csv, os, sys
+sys.path.append('../db_helper/')
+from db_helper import get_client, insert_many_data, drop_db
 
 # Actual
 DATABASE = 'csci79525_proj1'
