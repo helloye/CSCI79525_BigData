@@ -413,8 +413,8 @@ while user_input is not "5":
 
 '''
 TODO: Implement the below two cypher query options:
-MATCH (c:Compound)-[:UP_REGULATES]->(:Gene)<-[:DOWN_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease) RETURN DISTINCT c.name, d.name
-MATCH (c:Compound)-[:DOWN_REGULATES]->(:Gene)<-[:UP_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease) RETURN DISTINCT c.name, d.name
+MATCH (c:Compound)-[:UP_REGULATES]->(:Gene)<-[:DOWN_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease) WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name
+MATCH (c:Compound)-[:DOWN_REGULATES]->(:Gene)<-[:UP_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease) WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name
 '''
 
 clear_screen()
