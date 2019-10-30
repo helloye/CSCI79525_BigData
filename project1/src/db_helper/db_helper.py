@@ -1,11 +1,11 @@
 """
 Utility helper functions to insert into db.
 Mostly mongo client.
-TODO: Write utlilty functions for neo4j?
 """
 import os
 from pymongo import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError
+from neo4j import GraphDatabase
 
 
 def get_client():
@@ -53,6 +53,25 @@ def drop_db(db_client, db):
         db_client.drop_database(db)
     except:
         print('Drop DB Error')
+
+
+def n4j_compound_disease():
+    uri = 'bolt://localhost:7687'
+    try:
+        driver = GraphDatabase.driver(uri, auth=("neo4j", "neo4j"))
+        print('Neo4j Connection Established!!')
+    except:
+        print('Neo4j Connection Error: ' + uri)
+
+    print('\n Running Neo4j Query:'
+          '\n MATCH (c:Compound)-[:UP_REGULATES]->(:Gene)<-[:DOWN_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease)'
+          '\n WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name')
+
+    print('\n\n Running Neo4j Query:'
+          '\n MATCH (c:Compound)-[:DOWN_REGULATES]->(:Gene)<-[:UP_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease)'
+          '\n WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name')
+
+    return 1
 
 
 # *NOTE: This is a very expensive operation. Set debug flag to False to make program run faster

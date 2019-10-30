@@ -3,7 +3,7 @@ This file will serve as the main user interface with the db
 """
 import os, re, sys
 sys.path.append('./db_helper/')
-from db_helper import get_client, query_data_find, count_documents
+from db_helper import get_client, query_data_find, count_documents, n4j_compound_disease
 
 DATABASE = 'csci79525_proj1'
 
@@ -23,7 +23,8 @@ def print_menu():
     print("2) Diseases")
     print("3) Anatomy")
     print("4) Genes")
-    print("5) Quit")
+    print("5) Find missing Compound<->Disease Edges")
+    print("6) Quit")
 
 
 def print_associated_results(res):
@@ -385,6 +386,12 @@ def query_gene_nodes():
     for exp in AeG:
         print_associated_results(exp)
 
+def query_missing_compound_diseases():
+    res = n4j_compound_disease()
+
+    input('Press enter to view results....')
+
+
 '''
 MAIN PROGRAM LOOP
 - Prints main menu
@@ -392,10 +399,10 @@ MAIN PROGRAM LOOP
 '''
 
 user_input = "0"
-while user_input is not "5":
+while user_input is not "6":
     print_menu()
-    user_input = input("\nInput(1-5):")
-    if user_input is not "5":
+    user_input = input("\nInput(1-6):")
+    if user_input is not "6":
         os.system('cls' if os.name == 'nt' else 'clear')
         if user_input is "1":
             query_compound_nodes()
@@ -405,6 +412,8 @@ while user_input is not "5":
             query_anatomy_nodes()
         elif user_input is "4":
             query_gene_nodes()
+        elif user_input is "5":
+            query_missing_compound_diseases()
         else:
             print("Unsupported option.")
 
@@ -413,8 +422,8 @@ while user_input is not "5":
 
 '''
 TODO: Implement the below two cypher query options:
-MATCH (c:Compound)-[:UP_REGULATES]->(:Gene)<-[:DOWN_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease) WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name
-MATCH (c:Compound)-[:DOWN_REGULATES]->(:Gene)<-[:UP_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease) WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name
+MATCH (c:Compound)-[:UP_REGULATES]->(:Gene)<-[:DOWN_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease) WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name
+MATCH (c:Compound)-[:DOWN_REGULATES]->(:Gene)<-[:UP_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease) WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name
 '''
 
 clear_screen()
