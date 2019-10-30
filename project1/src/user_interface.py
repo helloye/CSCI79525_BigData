@@ -404,7 +404,7 @@ def query_missing_compound_diseases():
         try:
             compound_num = int(c)
             if compound_num < 0 or compound_num > res_length:
-                print('Please select a valid choice between 0 and ' + str(res_length))
+                print('ERROR: Please select a valid choice between 0 and ' + str(res_length) + "...")
             else:
                 comnpound_name = d_list[compound_num]
                 input("\n\nPress enter to view diseases treatable by: [" + comnpound_name + "]")
@@ -417,7 +417,7 @@ def query_missing_compound_diseases():
                 c = input("\n\nPress enter to select another compound, or 'q' to quit...")
         except:
             if c is not 'q':
-                c = input('Please select a number between 0 and ' + str(res_length))
+                c = input('ERROR: Please select a number between 0 and ' + str(res_length) + "...")
 
 
 '''
