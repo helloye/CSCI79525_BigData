@@ -63,15 +63,45 @@ def n4j_compound_disease():
     except:
         print('Neo4j Connection Error: ' + uri)
 
-    print('\n Running Neo4j Query:'
-          '\n MATCH (c:Compound)-[:UP_REGULATES]->(:Gene)<-[:DOWN_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease)'
-          '\n WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name')
+    results = dict()
 
-    print('\n\n Running Neo4j Query:'
-          '\n MATCH (c:Compound)-[:DOWN_REGULATES]->(:Gene)<-[:UP_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease)'
-          '\n WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name')
+    with driver.session() as session:
 
-    return 1
+        # UP_REGULATES -> Gene <- DOWN_REGULATES
+        print('\n Running Neo4j UP->Gene<-DOWN Query:'
+              '\n MATCH (c:Compound)-[:UP_REGULATES]->(:Gene)<-[:DOWN_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease)'
+              '\n WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name')
+
+        query_string = "MATCH (c:Compound)-[:UP_REGULATES]->(:Gene)<-[:DOWN_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease) WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name"
+        records = session.run(query_string).records()
+
+        for r in records:
+            compound = r['c.name']
+            disease = r['d.name']
+            if compound not in results:
+                results[compound] = []
+
+            results[compound].append(disease)
+
+        # DOWN_REGULATES -> Gene <- UP_REGULATES
+        print('\n\n Running Neo4j DOWN->Gene<-UP Query:'
+              '\n MATCH (c:Compound)-[:DOWN_REGULATES]->(:Gene)<-[:UP_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease)'
+              '\n WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name')
+
+        query_string = "MATCH (c:Compound)-[:DOWN_REGULATES]->(:Gene)<-[:UP_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease) WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name"
+        records = session.run(query_string).records()
+
+        for r in records:
+            compound = r['c.name']
+            disease = r['d.name']
+            if compound not in results:
+                results[compound] = []
+
+            if disease not in results[compound]:
+                results[compound].append(disease)
+
+    input('\n\nPress enter to view results....\n')
+    return results
 
 
 # *NOTE: This is a very expensive operation. Set debug flag to False to make program run faster

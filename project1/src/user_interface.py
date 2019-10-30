@@ -388,8 +388,36 @@ def query_gene_nodes():
 
 def query_missing_compound_diseases():
     res = n4j_compound_disease()
+    res_length = len(res)
+    d_list = list(res)
+    d_list.sort()
 
-    input('Press enter to view results....')
+    c = None
+    while c is not 'q':
+
+        os.system('cls' if os.name == 'nt' else 'clear')
+        for i in range(res_length):
+            print(str(i) + ') ' + d_list[i])
+
+        c = input("\nSelect compound # to view treatable diseases ('q' to quit). ")
+
+        try:
+            compound_num = int(c)
+            if compound_num < 0 or compound_num > res_length:
+                print('Please select a valid choice between 0 and ' + str(res_length))
+            else:
+                comnpound_name = d_list[compound_num]
+                input("\n\nPress enter to view diseases treatable by: [" + comnpound_name + "]")
+                os.system('cls' if os.name == 'nt' else 'clear')
+                print("====" + comnpound_name + "====")
+                print("Treatable Diseases:")
+                for d in res[comnpound_name]:
+                    print("\t" + d)
+
+                c = input("\n\nPress enter to select another compound, or 'q' to quit...")
+        except:
+            if c is not 'q':
+                c = input('Please select a number between 0 and ' + str(res_length))
 
 
 '''
