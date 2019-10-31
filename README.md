@@ -23,7 +23,7 @@ Pre-requisite:
   - Install `pymongo` using pip: `pip install pymongo`
   
 Run instructions:
-- Assuming you are in this dir (`/project1/src/mongo_db`)
+- Assuming you are in this dir (`./src/mongo_db`)
   - To load data run: `python load_data.py`
     - This might take a while, especially loading the edges.
 
@@ -42,7 +42,7 @@ Optional Pre-req
   - Used to help interface with neo4j dbs.
   
 Run instructions:
-- Assuming you are in this dir (`/project1/src/neo4j`)
+- Assuming you are in this dir (`./src/neo4j`)
   - First you'll need to clean the data: `python clean_data.py`
   - It'll ask you to enter the location of the neo4j import folder. Enter the ABSOLUTE path of the import folder location. (ex: `/<ABSOLUTE_PATH>/neo4j-community-3.5.11/import'`)
   - This script will clean up the data into CSV format, ready to be loaded into neo4j using the load CSV tool.
@@ -51,7 +51,7 @@ Run instructions:
 ---
 
 ### CLI Manual
-- Assuming you are in the root src directory: (`/project1/src`)
+- Assuming you are in the root src directory: (`./src`)
   - Simply run the UI python script to start up the CLI: `python user_interface.py`
 - Usage is pretty straight forward if you follow the on screen prompt, but details are listed below:
   - `Options 1-4` queries MongoDB to retrieve documents with data on the different nodes (Compound, Disease, Anatomy, Gene)
