@@ -1,0 +1,58 @@
+"""
+==== MY NOTES ====
+
+Sample query:
+1) Compound::DB00091 -Treates-> Disease::DOID:9074 -Localizes Anatomy-> Anatomy::UBERON:0000043
+2) Compound::DB00788 -Palliates-> Disease::DOID:9074
+
+{id:"Compound::DB00091",name: "Cyclosporine"}
+{id:"Disease::DOID:9074",name:"systemic lupus erythematosus"}
+{id:"Anatomy::UBERON:0000043",name:"tendon"}
+
+Cypher Query:
+
+CREATE (c:COMPOUND {id:"Compound::DB00091",name:"Cyclosporine"})-[CtD:TREATES_DISEASE]->(d:Disease {id:"Disease::DOID:9074",name:"systemic lupus erythematosus"})-[DlA:LOCALIZES_ANATOMY]->(a:Anatomy {id:"Anatomy::UBERON:0000043",name:"tendon"})
+
+- Multiple CREATE relational queries as the one above on the same NODE will result in multiple graphs.
+-- i.e: Running the above query twice will create 2 sets of 3 nodes, each with their own unique relationships.
+
+- Possible solution:
+1) Create all nodes first.
+CREATE(:Compound {id:"Compound::DB00091",name: "Cyclosporine"})
+
+2) Then run through the edge_data list, and use the MATCH command to CREATE the edges between two MATCH'd nodes.
+ex:
+MATCH (c:Compound),(d:Disease)
+WHERE c.id='Compound::DB00091' AND d.id='Disease::DOID:9074'
+CREATE (c)-[r:TREATS_DISEASE]->(b)
+
+* The above is the same as if we were to link it on CREATE:
+CREATE (c:COMPOUND {id:"Compound::DB00091",name:"Cyclosporine"})-[CtD:TREATES_DISEASE]->(d:Disease {id:"Disease::DOID:9074",name:"systemic lupus erythematosus"})
+
+*Utility Command Note*
+MATCH(n) RETURN n - Returns all node in graph
+MATCH(n) DETACH DELETE n - Deletes everything!!
+
+neo4j Python Driver Transaction Reference Notes:
+Reference: https://neo4j.com/docs/api/python-driver/current/transactions.html#transactions
+
+10/14/19 - Note, visualizing ALL the nodes is REALLLYYYY EXPENSIVE. Look to limit it to the relation query to answer question 2 only...?
+
+10/15/19 - Note, it's gonna take a long time to insert all the edges, look to filter in memory and only insert the ones that answer question 2?
+
+Compound -Treats-> Disease
+
+10/16/19 - LOAD_CSV Query:
+Assume sample_edges.csv is in the /import folder in neo4j server folder.
+
+** NOTE DO NOT QUERY WITHOUT LABELS!!**
+
+USING PERIODIC COMMIT 1000
+LOAD CSV WITH HEADERS FROM 'file:///<FILE>.csv' AS row
+MATCH (source:<SOURCE_LABEL> {id: row.source})
+MATCH (target:<TARGET_LABEL> {id: row.target})
+CREATE (source)-[:<RELATION_TYPE> {
+rel: row.edge, source: row.source, target: row.target
+}]->(target)
+
+"""

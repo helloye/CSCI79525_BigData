@@ -1,6 +1,7 @@
 # CSCI79525_BigData
-Projects Repo for Hunter College CSCI79525 - FA 19
-
+### Ye Paing
+Hunter College CSCI79525 - FA 19
+___
 `./src/mongodb` - Contains source code to clean and load data into mongo db.
 
 `./src/neo4j` - Contains source code to clean and load data into neo4j db.
@@ -99,7 +100,37 @@ This query above is repeated multiple times for different edge node types (resem
 
 
 #### Neo4J Queries
+(Pre) Clean by detaching and deleting all data in db
+`MATCH(n) DETACH DELETE n`
+
 Loading Nodes (CSV Loader)
 ```$xslt
+USING PERIODIC COMMIT 1000
+LOAD CSV WITH HEADERS FROM 'file:///"+<FILE_NAME>+".csv' AS row"
+CREATE(n:"+<KEY>+" {id: row.id, name: row.name}) RETURN count(n)
+```
 
+And running additional constraints to help index and speed up future queries on nodes
+```$xslt
+CREATE CONSTRAINT ON (n:Compound) ASSERT (n.id) IS UNIQUE
+CREATE CONSTRAINT ON (n:Disease) ASSERT (n.id) IS UNIQUE
+CREATE CONSTRAINT ON (n:Anatomy) ASSERT (n.id) IS UNIQUE
+CREATE CONSTRAINT ON (n:Gene) ASSERT (n.id) IS UNIQUE
+```
+
+Loading Edges (CSV Loader)
+```$xslt
+USING PERIODIC COMMIT 10000 LOAD CSV WITH HEADERS FROM 'file:///<FILE_NAME>.csv' AS row
+MATCH (a:<SOURCE_NODE_TYPE> {id: row.source})
+MATCH (b:<TARGET_NODE_TYPE> {id: row.target})
+CREATE (a)-[e:<RELATION> {rel: row.edge, source: row.source, target: row.target}]->(b) RETURN count(e)
+```
+
+Query Missing Edges (UP/DOWN regulate association between Compound-Disease)
+```$xslt
+MATCH (c:Compound)-[:UP_REGULATES]->(:Gene)<-[:DOWN_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease)
+WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name
+
+MATCH (c:Compound)-[:DOWN_REGULATES]->(:Gene)<-[:UP_REGULATES]-(:Anatomy)<-[:LOCALIZES]-(d:Disease)
+WHERE NOT (c)-[:TREATS]->(d) RETURN DISTINCT c.name, d.name ORDER BY c.name
 ```

@@ -2,10 +2,10 @@ import re, os
 
 
 # Actual User Input
-# output_path = input("Path to output converted CSV:")
+output_path = input("Absolute path to output converted CSV (neo4j import folder:")
 
 # Testing
-output_path = '/Users/helloye/Documents/CSCI/neo4j-community-3.5.11/import'
+# output_path = '/Users/helloye/Documents/CSCI/neo4j-community-3.5.11/import'
 
 """
 CONVERT TSV TO CSV FOR LOAD_CSV
