@@ -1,11 +1,13 @@
 from pyspark.sql import SparkSession
-import math
+import math, re
+
+ignore_pattern = re.compile("^[0-9\-%]*$")
 
 spark = SparkSession.builder.master("local[*]").getOrCreate()
 
 sc = spark.sparkContext
 
-data = sc.textFile("test_small.txt")
+data = sc.textFile("test.txt")
 
 num_docs = data.count()
 
@@ -15,11 +17,11 @@ def break_into_words(doc):
 
     o/p = A list of kv pairs, where k is the docid and the work, value is 1
     """
-    s = doc.split(" ")
-    doc_id = s[0]
-    total_words = len(s) - 1 # doc id was the first word.
+    (doc_id, sentence) = doc.split(" ", 1)
+    filtered_sentence = list(filter(lambda word: not ignore_pattern.match(word), sentence.split(" ")))
+    total_words = len(filtered_sentence) # Considered the length without the stop words.
     output = []
-    for word in s[1:]:
+    for word in filtered_sentence:
         output.append(((doc_id, total_words, word), 1))
 
     return output
