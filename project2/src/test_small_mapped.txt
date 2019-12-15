@@ -1,0 +1,9 @@
+1234	I	1
+1234	data	1
+1234	like	1
+1234	science	1
+5678	I	1
+5678	data	1
+5678	hate	1
+9101	A	1
+9101	want	1
