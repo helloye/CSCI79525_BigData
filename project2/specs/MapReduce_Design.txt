@@ -1,0 +1,88 @@
+Below are the map reduce steps in order for calculating the tf-idf, and cosine similarity scores.
+Along with a short explanation of each step
+
+===== Finding TF =====
+
+1)
+Map(document) -> (Key1, Value1)
+
+Input: document (each of the corpus/sample text file)
+
+Output:
+Key1 = tuple(document_id, total_words, word)
+Value1 = 1
+
+- Key is made up of a tuple of the document id (first word in line), the total # of words in that document, and the word itself
+- Tracking total # of words as part of the key for "idf" calculation later.
+- Value is just 1, for every 1 occurrence of the word.
+
+
+2)
+Reduce(bydocid) -> (Key2, Value2)
+
+Input: Tuples from 1)
+
+Output:
+Key2 = tuple(document_id, total_words, word)
+Value2 = reduced/accumulated count of all the value for the key
+
+- Reduces by key "tuple(document_id, total_words, word)"
+- Essentially tallies all the count of the word, grouped by the document ID
+- Line 28 in spark_map_reduce.py:
+  bydocid.reduceByKey(lambda x, y: x + y)
+
+3)
+Map(by_doc_counts) -> (Key3, Value3)
+
+Input: Resulting reduce from 2), key is the docid/total_word/word tuple, and value is the # of occurrence
+
+Output:
+Key3 = word (reduced from Key2)
+Value3 = array[tuple(docid, term frequency)]
+
+- We can calculate term frequency because we kept total_words count from earlier for each doc (key2).
+- Value should be an array of tuples, so we can add them together in the next reduce step.
+
+4)
+Reduce(word_doc_tf) -> (Key4, Value4)
+
+Input: Resulting map from 3)
+
+Output:
+Key4 = word (Key3)
+Value4 = Array[(Value3), (Value3), ....)]
+
+- Reduce the map from 3) and simply append all the tuples from 3) "(docid, tf)"
+- We now have a matrix of key(word) and tf value based on docid (tuple of docid,tf)
+
+
+===== Finding IDF (and subsequently TF*IDF) =====
+
+5)
+Map(word_tf) -> (Key5, Value5)
+
+Input: Resulting matrix from reduce done in 4), basically our matrix of TF scores
+Output:
+Key5: word (from Key4)
+Value: Array[ tuple(docid, tfidf), ...]
+
+- We know the # of document from simply performing a linecount on the corpus at the start.
+- We know how many document contains the word by simply looking at length of Value4 that's being fed into this mapper
+
+===== Finding cosine similarity (for all term-term values) =====
+
+6)
+- Cartesian product of our result from 5, with itself, to find all similarities.
+- Filtering repeated products to remove repeated output
+i.e - cosine similarity calculation for tf-idf score of (Word1, Word2) is the same as (Word2, Word1)
+- Result of the filtered cartesian product is then fed into the mapper below to calculate cosine similarity
+
+Map(filtered_tfidf_cartesian_product) -> (Key6, Value6)
+
+Input: Filtered cartesian product of tf-idf scores from 5
+- The pairs will be unique (Word1, Word2) tuples
+
+Output:
+Tuple(Word1, Word2, Similarity Score)
+Key5: Can either be word1 or word2, based on what we want to search.
+Value5: Cosine similarity scores.

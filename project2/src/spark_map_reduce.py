@@ -5,7 +5,7 @@ spark = SparkSession.builder.master("local[*]").getOrCreate()
 
 sc = spark.sparkContext
 
-data = sc.textFile("test_small_2.txt")
+data = sc.textFile("test_small.txt")
 
 num_docs = data.count()
 
@@ -20,7 +20,7 @@ def break_into_words(doc):
     total_words = len(s) - 1 # doc id was the first word.
     output = []
     for word in s[1:]:
-        output.append ( ((doc_id, total_words, word), 1) )
+        output.append(((doc_id, total_words, word), 1))
 
     return output
 
@@ -71,14 +71,14 @@ def find_similarity(word_tf_idf1, word_tf_idf2):
         if doc_id in docid_tfidfs1 and doc_id in docid_tfidfs2:
             numerator = numerator + (docid_tfidfs1[doc_id] * docid_tfidfs2[doc_id])
 
-    denominator = math.sqrt( sum([x * x for x in docid_tfidfs1.values()]) ) * math.sqrt( sum([x * x for x in docid_tfidfs2.values()]) )
+    denominator = max(math.sqrt( sum([x * x for x in docid_tfidfs1.values()]) ) * math.sqrt( sum([x * x for x in docid_tfidfs2.values()])), 1)
 
     sim = numerator / denominator
 
     return (word1, word2, sim)
 
 term_term_sim = word_and_tfidfs.cartesian(word_and_tfidfs).filter(lambda x: x[0][0] < x[1][0]) \
-    .map(lambda x: find_similarity(x[0], x[1]))
+    .map(lambda x: find_similarity(x[0], x[1])).filter(lambda x: x[2] > 0)
 
 # cartesian example
 # [1,2] - cartesian with itself and then .filter(lambda x: x[0][0] < x[1][0]) = [(1, 2)]
