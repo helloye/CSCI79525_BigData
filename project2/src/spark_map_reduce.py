@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-import math, re
+import math, re, pprint
 
 ignore_pattern = re.compile("^[0-9\-%]*$")
 
@@ -7,7 +7,9 @@ spark = SparkSession.builder.master("local[*]").getOrCreate()
 
 sc = spark.sparkContext
 
-data = sc.textFile("test.txt")
+sc.setLogLevel('OFF')
+
+data = sc.textFile("test_small.txt")
 
 num_docs = data.count()
 
@@ -85,4 +87,6 @@ term_term_sim = word_and_tfidfs.cartesian(word_and_tfidfs).filter(lambda x: x[0]
 # cartesian example
 # [1,2] - cartesian with itself and then .filter(lambda x: x[0][0] < x[1][0]) = [(1, 2)]
 
-term_term_sim.saveAsTextFile("term_term_sim")
+pprint.pprint(term_term_sim.collect())
+
+# term_term_sim.saveAsTextFile("term_term_sim")
