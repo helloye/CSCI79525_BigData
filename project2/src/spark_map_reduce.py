@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-import math, re, pprint
+import math, re, pprint, sys
 
 ignore_pattern = re.compile("^[0-9\-%]*$")
 
@@ -82,11 +82,28 @@ def find_similarity(word_tf_idf1, word_tf_idf2):
     return (word1, word2, sim)
 
 term_term_sim = word_and_tfidfs.cartesian(word_and_tfidfs).filter(lambda x: x[0][0] < x[1][0]) \
-    .map(lambda x: find_similarity(x[0], x[1])).filter(lambda x: x[2] > 0)
-
+    .map(lambda x: find_similarity(x[0], x[1])).filter(lambda x: x[2] > 0).sortBy(lambda x: x[0])
 # cartesian example
 # [1,2] - cartesian with itself and then .filter(lambda x: x[0][0] < x[1][0]) = [(1, 2)]
 
-pprint.pprint(term_term_sim.collect())
+# Collect, sort and print to output
+collected_similarity_scores = term_term_sim.collect()
+if len(sys.argv) - 1 == 0:
+    print("\n\nPrinting all scores...\n\n")
+    pprint.pprint(collected_similarity_scores)
 
-# term_term_sim.saveAsTextFile("term_term_sim")
+    # TODO: Figure out if we need to print to file.
+    # term_term_sim.saveAsTextFile("term_term_sim")
+
+if len(sys.argv) - 1 > 0:
+    term_to_search = sys.argv[1]
+    results = []
+    print("\n\n Similarity score for term: {} \n".format(term_to_search))
+    for score in collected_similarity_scores:
+        if score[0] == term_to_search:
+            results.append((score[1], score[2]))
+        elif score[1] == term_to_search:
+            results.append((score[0], score[2]))
+
+    results.sort(key=lambda s: s[1], reverse=True)
+    pprint.pprint(results)
