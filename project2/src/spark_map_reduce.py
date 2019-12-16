@@ -23,6 +23,7 @@ def break_into_words(doc):
     filtered_sentence = list(filter(lambda word: not ignore_pattern.match(word), sentence.split(" ")))
     total_words = len(filtered_sentence) # Considered the length without the stop words.
     output = []
+
     for word in filtered_sentence:
         output.append(((doc_id, total_words, word), 1))
 
@@ -45,12 +46,21 @@ word_doc_tf = by_doc_counts.map(find_tf) # Output is key = (word, [(value as doc
 
 word_tf = word_doc_tf.reduceByKey(lambda x, y: x + y) # I,  [ (D1, 1/4), (D2, 1/3) ]
 
+# Debug
+# print("\n\n==== WORD TF ====")
+# pprint.pprint(word_tf.collect())
+# print("\b\b")
+
 def tf_idf(word_doc_freq):
     word = word_doc_freq[0]
     doc_and_freq = word_doc_freq[1]
     doc_freq = len(doc_and_freq)
 
-    idf = math.log2(num_docs / doc_freq)
+    # Debug
+    # if word is "I":
+    #     print("{}/{}".format(num_docs, doc_freq))
+
+    idf = math.log10(num_docs / doc_freq)
 
     tf_idfs = []
 
@@ -61,6 +71,10 @@ def tf_idf(word_doc_freq):
 
 word_and_tfidfs = word_tf.map(tf_idf)  # Collection of (word, [ (docid, tfidf), .... ] )
 
+# Debug
+# print("\n\n==== WORD TFIDF ====")
+# pprint.pprint(word_and_tfidfs.collect())
+# print("\n\n")
 
 def find_similarity(word_tf_idf1, word_tf_idf2):
     word1 = word_tf_idf1[0]
@@ -82,7 +96,8 @@ def find_similarity(word_tf_idf1, word_tf_idf2):
     return (word1, word2, sim)
 
 term_term_sim = word_and_tfidfs.cartesian(word_and_tfidfs).filter(lambda x: x[0][0] < x[1][0]) \
-    .map(lambda x: find_similarity(x[0], x[1])).filter(lambda x: x[2] > 0).sortBy(lambda x: x[0])
+    .map(lambda x: find_similarity(x[0], x[1])).filter(lambda x: x[2] > 0)
+
 # cartesian example
 # [1,2] - cartesian with itself and then .filter(lambda x: x[0][0] < x[1][0]) = [(1, 2)]
 
