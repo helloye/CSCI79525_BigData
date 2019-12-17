@@ -9,7 +9,11 @@ sc = spark.sparkContext
 
 sc.setLogLevel('OFF')
 
-data = sc.textFile("test_small.txt")
+if len(sys.argv) - 1 <= 0:
+    print('Error, no data file supplied in parameters...')
+    exit(1)
+
+data = sc.textFile(sys.argv[1])
 
 num_docs = data.count()
 
@@ -103,22 +107,42 @@ term_term_sim = word_and_tfidfs.cartesian(word_and_tfidfs).filter(lambda x: x[0]
 
 # Collect, sort and print to output
 collected_similarity_scores = term_term_sim.collect()
-if len(sys.argv) - 1 == 0:
+if len(sys.argv) - 1 == 1:
+    collected_similarity_scores.sort(key=lambda s: s[0])
     print("\n\nPrinting all scores...\n\n")
     pprint.pprint(collected_similarity_scores)
 
     # TODO: Figure out if we need to print to file.
     # term_term_sim.saveAsTextFile("term_term_sim")
 
-if len(sys.argv) - 1 > 0:
-    term_to_search = sys.argv[1]
+def is_term_gene_or_disease(term):
+    split_term = term.split("_")
+    if split_term[0] == "gene" and split_term[len(split_term)-1] == "gene":
+        return True
+
+    if split_term[0] == "dis" and split_term[len(split_term)-1] == "dis":
+        return True
+
+    return False
+
+if len(sys.argv) - 1 > 1:
+    term_to_search = sys.argv[2]
+    gene_dis_only = len(sys.argv) == 4 and sys.argv[3] == "--gene-dis-only"
+
     results = []
     print("\n\n Similarity score for term: {} \n".format(term_to_search))
     for score in collected_similarity_scores:
-        if score[0] == term_to_search:
-            results.append((score[1], score[2]))
-        elif score[1] == term_to_search:
-            results.append((score[0], score[2]))
+        if gene_dis_only:
+            if score[0] == term_to_search and is_term_gene_or_disease(score[1]):
+                results.append((score[1], score[2]))
+            elif score[1] == term_to_search and is_term_gene_or_disease(score[0]):
+                results.append((score[0], score[2]))
+
+        if not gene_dis_only:
+            if score[0] == term_to_search:
+                results.append((score[1], score[2]))
+            elif score[1] == term_to_search:
+                results.append((score[0], score[2]))
 
     results.sort(key=lambda s: s[1], reverse=True)
     pprint.pprint(results)
