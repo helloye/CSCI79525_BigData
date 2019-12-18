@@ -41,15 +41,15 @@ def break_into_words(doc):
 bydocid = data.flatMap(break_into_words) # the output has (doc_id, total_words_in_doc, word) as our key, and 1 as value
 by_doc_counts = bydocid.reduceByKey(lambda x, y: x + y) # the output has (doc_id, total_words_in_doc, word) as key, and word_freq_in_doc as value
 
-# Debug
-print("\n\n==== WORD COUNT BY DOC ID ====")
-pprint.pprint(bydocid.collect())
-print("\b\b")
-
-# Debug
-print("\n\n==== REDUCED BY KEY COUNT ====")
-pprint.pprint(by_doc_counts.collect())
-print("\b\b")
+# # Debug
+# print("\n\n==== WORD COUNT BY DOC ID ====")
+# pprint.pprint(bydocid.collect())
+# print("\b\b")
+#
+# # Debug
+# print("\n\n==== REDUCED BY KEY COUNT ====")
+# pprint.pprint(by_doc_counts.collect())
+# print("\b\b")
 
 def find_tf(pair):
     key = pair[0]
@@ -65,9 +65,9 @@ word_doc_tf = by_doc_counts.map(find_tf) # Output is key = (word, [(value as doc
 word_tf = word_doc_tf.reduceByKey(lambda x, y: x + y) # I,  [ (D1, 1/4), (D2, 1/3) ]
 
 # Debug
-print("\n\n==== WORD TF ====")
-pprint.pprint(word_tf.collect())
-print("\b\b")
+# print("\n\n==== WORD TF ====")
+# pprint.pprint(word_tf.collect())
+# print("\b\b")
 
 def tf_idf(word_doc_freq):
     word = word_doc_freq[0]
@@ -90,9 +90,9 @@ def tf_idf(word_doc_freq):
 word_and_tfidfs = word_tf.map(tf_idf)  # Collection of (word, [ (docid, tfidf), .... ] )
 
 # Debug
-print("\n\n==== WORD TFIDF ====")
-pprint.pprint(word_and_tfidfs.collect())
-print("\n\n")
+# print("\n\n==== WORD TFIDF ====")
+# pprint.pprint(word_and_tfidfs.collect())
+# print("\n\n")
 
 def find_similarity(word_tf_idf1, word_tf_idf2):
     word1 = word_tf_idf1[0]
