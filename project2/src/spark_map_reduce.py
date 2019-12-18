@@ -1,6 +1,11 @@
 from pyspark.sql import SparkSession
 import math, re, pprint, sys
 
+# Ensure PySpark is using Python 3.7
+# EMR Python 3.7 Set command:
+#   sudo sed -i -e '$a\export PYSPARK_PYTHON=/usr/bin/python3' /etc/spark/conf/spark-env.sh
+# Use the executor mem flag on EMR: --executor-memory 1g
+
 ignore_pattern = re.compile("^[0-9\-%]*$")
 
 spark = SparkSession.builder.master("local[*]").getOrCreate()
@@ -36,6 +41,15 @@ def break_into_words(doc):
 bydocid = data.flatMap(break_into_words) # the output has (doc_id, total_words_in_doc, word) as our key, and 1 as value
 by_doc_counts = bydocid.reduceByKey(lambda x, y: x + y) # the output has (doc_id, total_words_in_doc, word) as key, and word_freq_in_doc as value
 
+# Debug
+print("\n\n==== WORD COUNT BY DOC ID ====")
+pprint.pprint(bydocid.collect())
+print("\b\b")
+
+# Debug
+print("\n\n==== REDUCED BY KEY COUNT ====")
+pprint.pprint(by_doc_counts.collect())
+print("\b\b")
 
 def find_tf(pair):
     key = pair[0]
@@ -51,9 +65,9 @@ word_doc_tf = by_doc_counts.map(find_tf) # Output is key = (word, [(value as doc
 word_tf = word_doc_tf.reduceByKey(lambda x, y: x + y) # I,  [ (D1, 1/4), (D2, 1/3) ]
 
 # Debug
-# print("\n\n==== WORD TF ====")
-# pprint.pprint(word_tf.collect())
-# print("\b\b")
+print("\n\n==== WORD TF ====")
+pprint.pprint(word_tf.collect())
+print("\b\b")
 
 def tf_idf(word_doc_freq):
     word = word_doc_freq[0]
@@ -76,9 +90,9 @@ def tf_idf(word_doc_freq):
 word_and_tfidfs = word_tf.map(tf_idf)  # Collection of (word, [ (docid, tfidf), .... ] )
 
 # Debug
-# print("\n\n==== WORD TFIDF ====")
-# pprint.pprint(word_and_tfidfs.collect())
-# print("\n\n")
+print("\n\n==== WORD TFIDF ====")
+pprint.pprint(word_and_tfidfs.collect())
+print("\n\n")
 
 def find_similarity(word_tf_idf1, word_tf_idf2):
     word1 = word_tf_idf1[0]
@@ -115,30 +129,27 @@ if len(sys.argv) - 1 == 1:
     # TODO: Figure out if we need to print to file.
     # term_term_sim.saveAsTextFile("term_term_sim")
 
-def is_term_gene_or_disease(term):
+def is_term_gene_or_disease(term, gene_dis_tag):
     split_term = term.split("_")
-    if split_term[0] == "gene" and split_term[len(split_term)-1] == "gene":
-        return True
-
-    if split_term[0] == "dis" and split_term[len(split_term)-1] == "dis":
+    if split_term[0] == gene_dis_tag and split_term[len(split_term)-1] == gene_dis_tag:
         return True
 
     return False
 
 if len(sys.argv) - 1 > 1:
     term_to_search = sys.argv[2]
-    gene_dis_only = len(sys.argv) == 4 and sys.argv[3] == "--gene-dis-only"
+    gene_dis_tag = sys.argv[3] if len(sys.argv) == 4 else None
 
     results = []
     print("\n\n Similarity score for term: {} \n".format(term_to_search))
     for score in collected_similarity_scores:
-        if gene_dis_only:
-            if score[0] == term_to_search and is_term_gene_or_disease(score[1]):
+        if gene_dis_tag is not None:
+            if score[0] == term_to_search and is_term_gene_or_disease(score[1], gene_dis_tag):
                 results.append((score[1], score[2]))
-            elif score[1] == term_to_search and is_term_gene_or_disease(score[0]):
+            elif score[1] == term_to_search and is_term_gene_or_disease(score[0], gene_dis_tag):
                 results.append((score[0], score[2]))
 
-        if not gene_dis_only:
+        if gene_dis_tag is None:
             if score[0] == term_to_search:
                 results.append((score[1], score[2]))
             elif score[1] == term_to_search:
